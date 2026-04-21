@@ -1,0 +1,27 @@
+{
+  "name": "bku-smart-parking-iot",
+  "version": "1.0.0",
+  "description": "Monorepo for BKU Smart Parking IoT web app",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm run start --prefix backend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PhanHaoLuong/bku-smart-parking-iot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/PhanHaoLuong/bku-smart-parking-iot/issues"
+  },
+  "homepage": "https://github.com/PhanHaoLuong/bku-smart-parking-iot#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

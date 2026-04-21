@@ -1,0 +1,17 @@
+.app {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 0 1rem;
+}
+
+.card {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.error {
+  color: #b42318;
+}
