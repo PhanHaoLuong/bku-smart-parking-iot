@@ -1,6 +1,7 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+import 'dotenv/config'; // Replaces require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import authRoute from './routes/auth.route.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,8 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use('/apiv1/auth', authRoute);
 
 app.use((req, res) => {
   res.status(404).json({

@@ -1,48 +1,55 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import './App.css';
+import AuthPage from './pages/AuthPage';
+import LogoutButton from './components/LogoutButton';
 
 function App() {
-  const [health, setHealth] = useState(null)
-  const [error, setError] = useState('')
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
-  useEffect(() => {
-    const fetchHealth = async () => {
-      try {
-        const response = await fetch('/api/health')
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-        const data = await response.json()
-        setHealth(data)
-      } catch (err) {
-        setError(err.message)
-      }
-    }
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
 
-    fetchHealth()
-  }, [])
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+  };
 
   return (
-    <main className="app">
-      <h1>BKU Smart Parking IoT</h1>
-      <p>Express + React foundation is ready.</p>
+    <Router>
+      <main className="app">
+        <h1>BKU Smart Parking IoT</h1>
+        <Routes>
+          {/* Public Route */}
+          <Route
+            path="/auth"
+            element={
+              isAuthenticated ? <Navigate to="/" /> : <AuthPage onLogin={handleLogin} />
+            }
+          />
 
-      <section className="card">
-        <h2>Backend Health Check</h2>
-        {!health && !error && <p>Checking API...</p>}
+          {/* Protected Route */}
+          <Route
+            path="/"
+            element={
+              isAuthenticated ? (
+                <div>
+                  <h2>Welcome to the Dashboard</h2>
+                  <LogoutButton onLogout={handleLogout} />
+                </div>
+              ) : (
+                <Navigate to="/auth" />
+              )
+            }
+          />
 
-        {health && (
-          <div>
-            <p>Status: {health.status}</p>
-            <p>Message: {health.message}</p>
-            <p>Timestamp: {health.timestamp}</p>
-          </div>
-        )}
-
-        {error && <p className="error">Failed to call backend: {error}</p>}
-      </section>
-    </main>
-  )
+          {/* Catch-all Route */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
+    </Router>
+  );
 }
 
-export default App
+export default App;
