@@ -1,10 +1,5 @@
-// backend/src/controllers/auth.controller.js
-
-// Hardcoded user data
-const users = [
-    { username: "admin", password: "admin123" },
-    { username: "user", password: "user123" },
-];
+//Hardcoded user data
+import { addUser, findUserByUsername, validateUser } from "../data/user.data.js"
 
 // Mock token storage
 const tokens = new Set();
@@ -17,12 +12,12 @@ export const signup = (req, res) => {
     return res.status(400).json({ message: "Username and password are required" });
   }
 
-  const userExists = users.find((user) => user.username === username);
+  const userExists = findUserByUsername(username);
   if (userExists) {
     return res.status(400).json({ message: "User already exists" });
   }
 
-  users.push({ username, password });
+  addUser({username: username, password: password});
   res.status(201).json({ message: "User signed up successfully" });
 };
 
@@ -34,7 +29,7 @@ export const login = (req, res) => {
     return res.status(400).json({ message: "Username and password are required" });
   }
 
-  const user = users.find((user) => user.username === username && user.password === password);
+  const user = validateUser(username, password);
   if (!user) {
     return res.status(401).json({ message: "Invalid credentials" });
   }
