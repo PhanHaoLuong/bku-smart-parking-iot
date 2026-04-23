@@ -28,6 +28,8 @@ export const addUser = async (user) => User.create(user);
 
 export const findUserByUsername = async (username) => User.findOne({ username }).lean();
 
+export const findUserById = async (id) => User.findById(id).lean();
+
 export const validateUser = async (username, password) =>
   User.findOne({ username, password }).lean();
 

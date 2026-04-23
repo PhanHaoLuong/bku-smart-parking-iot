@@ -33,7 +33,7 @@ export const login = async (req, res) => {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const token = `${user._id}-token`; // Mock token generation
+  const token = `${user._id}-${user.role}-token`;
   tokens.add(token);
   res.status(200).json({ message: 'Login successful', token });
 };

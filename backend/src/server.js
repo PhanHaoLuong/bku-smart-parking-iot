@@ -2,6 +2,7 @@ import 'dotenv/config'; // Replaces require('dotenv').config();
 import express from 'express';
 import cors from 'cors';
 import authRoute from './routes/auth.route.js';
+import parkingHistoryRoute from './routes/parkinghistory.route.js';
 import { connectToDatabase } from './config/db.js';
 import { seedDemoData } from './utils/seed.util.js';
 
@@ -25,6 +26,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/apiv1/auth', authRoute);
+app.use('/apiv1/parking-history', parkingHistoryRoute);
 
 app.use((req, res) => {
   res.status(404).json({
