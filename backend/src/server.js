@@ -2,6 +2,8 @@ import 'dotenv/config'; // Replaces require('dotenv').config();
 import express from 'express';
 import cors from 'cors';
 import authRoute from './routes/auth.route.js';
+import { connectToDatabase } from './config/db.js';
+import { seedDemoUsers } from './data/user.data.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +32,16 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+const startServer = async () => {
+  await connectToDatabase();
+  await seedDemoUsers();
+
+  app.listen(PORT, () => {
+    console.log(`Server listening on http://localhost:${PORT}`);
+  });
+};
+
+startServer().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });

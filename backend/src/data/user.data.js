@@ -1,25 +1,23 @@
-// backend/src/data/user.data.js
+import User from '../models/user.model.js';
 
-// In-memory user storage
-const users = new Map();
+const demoUsers = [
+  { username: '2452712', password: '123', role: 'learner', cardActive: true },
+  { username: 'fstaff', password: '123', role: 'staff', cardActive: true },
+];
 
-// Add initial users (optional)
-users.set("1", { id: "1", username: "2452712", password: "123", role: "learner", cardActive: true });
-users.set("2", { id: "2", username: "fstaff", password: "123", role: "staff" });
+export const seedDemoUsers = async () => {
+  const userCount = await User.countDocuments();
 
-// Utility functions
-export const addUser = (user) => {
-  const id = String(users.size + 1); // Generate a new ID
-  users.set(id, { id, ...user });
-  return users.get(id);
+  if (userCount === 0) {
+    await User.insertMany(demoUsers);
+  }
 };
 
-export const findUserByUsername = (username) => {
-  return [...users.values()].find((user) => user.username === username);
-};
+export const addUser = async (user) => User.create(user);
 
-export const validateUser = (username, password) => {
-  return [...users.values()].find((user) => user.username === username && user.password === password);
-};
+export const findUserByUsername = async (username) => User.findOne({ username }).lean();
 
-export const getAllUsers = () => [...users.values()];
+export const validateUser = async (username, password) =>
+  User.findOne({ username, password }).lean();
+
+export const getAllUsers = async () => User.find().lean();
