@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoute from './routes/auth.route.js';
 import { connectToDatabase } from './config/db.js';
-import { seedDemoUsers } from './utils/user.util.js';
+import { seedDemoData } from './utils/seed.util.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,7 +34,7 @@ app.use((req, res) => {
 
 const startServer = async () => {
   await connectToDatabase();
-  await seedDemoUsers();
+  await seedDemoData();
 
   app.listen(PORT, () => {
     console.log(`Server listening on http://localhost:${PORT}`);
