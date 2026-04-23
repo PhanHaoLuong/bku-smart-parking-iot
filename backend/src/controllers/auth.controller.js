@@ -1,4 +1,4 @@
-import { addUser, findUserByUsername, validateUser } from '../data/user.data.js';
+import { addUser, findUserByUsername, validateUser } from '../utils/user.util.js';
 
 // Mock token storage
 const tokens = new Set();
@@ -33,7 +33,7 @@ export const login = async (req, res) => {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const token = `${username}-token`; // Mock token generation
+  const token = `${user._id}-token`; // Mock token generation
   tokens.add(token);
   res.status(200).json({ message: 'Login successful', token });
 };

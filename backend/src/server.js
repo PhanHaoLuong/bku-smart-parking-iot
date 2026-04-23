@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoute from './routes/auth.route.js';
 import { connectToDatabase } from './config/db.js';
-import { seedDemoUsers } from './data/user.data.js';
+import { seedDemoUsers } from './utils/user.util.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
