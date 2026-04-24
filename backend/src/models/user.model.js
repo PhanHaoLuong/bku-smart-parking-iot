@@ -19,10 +19,22 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       default: 'learner',
+      enum: ['admin', 'operator', 'learner', 'faculty'],
     },
     cardActive: {
       type: Boolean,
       default: true,
+    },
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      unique: true,
+      trim: true,
+      lowercase: true,
     },
   },
   {

@@ -1,4 +1,5 @@
-import { addUser, findUserByUsername, validateUser } from '../utils/user.util.js';
+import { get } from 'mongoose';
+import { addUser, findUserById, findUserByUsername, validateUser } from '../utils/user.util.js';
 
 // Mock token storage
 const tokens = new Set();
@@ -49,3 +50,19 @@ export const logout = (req, res) => {
   tokens.delete(token);
   res.status(200).json({ message: 'Logout successful' });
 };
+
+export const getUserInfo = async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token || !tokens.has(token)) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const [userId, role] = token.split('-');
+  const user = await findUserById(userId);
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  res.status(200).json(user);
+}
