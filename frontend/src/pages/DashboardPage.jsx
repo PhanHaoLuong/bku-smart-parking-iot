@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 
 function DashboardPage({}) {
     return(
-        <div clasName="dashboard-page">
+        <div className="dashboard-page">
             <Link key="/parking-history" to="/parking-history">
                 Parking History
             </Link>
             
-            <Link key="/personal-info" to="/personal-info">
+            <Link key="/info" to="/info">
                 Personal Info
             </Link>
         </div>
