@@ -1,4 +1,4 @@
-import { getParkingHistoryByUserId, getAllParkingHistories } from '../utils/parkinghistory.util.js';
+import { getParkingSessionByUserId, getAllParkingSessions } from '../utils/parkinghistory.util.js';
 
 export const getParkingHistory = async (req, res) => {
   const { id } = req.params;
@@ -6,12 +6,12 @@ export const getParkingHistory = async (req, res) => {
   try {
     let parkingHistories;
     if (id) {
-      parkingHistories = await getParkingHistoryByUserId(id);
+      parkingHistories = await getParkingSessionByUserId(id);
       if (!parkingHistories) {
         return res.status(404).json({ message: 'Parking history not found for user' });
       }
     } else {
-      parkingHistories = await getAllParkingHistories();
+      parkingHistories = await getAllParkingSessions();
     }
     res.status(200).json(parkingHistories);
   } catch (error) {

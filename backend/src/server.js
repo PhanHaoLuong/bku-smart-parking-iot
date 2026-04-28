@@ -1,10 +1,15 @@
 import 'dotenv/config'; // Replaces require('dotenv').config();
 import express from 'express';
 import cors from 'cors';
-import authRoute from './routes/auth.route.js';
-import parkingHistoryRoute from './routes/parkinghistory.route.js';
+
 import { connectToDatabase } from './config/db.js';
 import { seedDemoData } from './utils/seed.util.js';
+
+import authRoute from './routes/auth.route.js';
+import parkingHistoryRoute from './routes/parkinghistory.route.js';
+import iotRoute from './routes/iot.route.js';
+import monitoringRoute from './routes/monitoring.route.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +32,8 @@ app.get('/api/health', (req, res) => {
 
 app.use('/apiv1/auth', authRoute);
 app.use('/apiv1/parking-history', parkingHistoryRoute);
+app.use('/apiv1/iot', iotRoute);
+app.use('/apiv1/monitoring', monitoringRoute);
 
 app.use((req, res) => {
   res.status(404).json({

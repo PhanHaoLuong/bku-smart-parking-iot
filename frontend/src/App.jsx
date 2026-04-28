@@ -5,6 +5,7 @@ import LogoutButton from './components/LogoutButton';
 import DashboardPage from './pages/DashboardPage';
 import ParkingHistoryPage from './pages/ParkingHistoryPage';
 import InfoPage from './pages/InfoPage';
+import StaffDashboardPage from './pages/StaffDashboardPage';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -33,6 +34,7 @@ function AppRoutes() {
       />
       <Route path="/parking-history" element={<ParkingHistoryPage role={role} userId={userId} />} />
       <Route path="/info" element={<InfoPage />} />
+      <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
       <Route path="*" element={<Navigate to="/auth" />} />
     </Routes>
   );

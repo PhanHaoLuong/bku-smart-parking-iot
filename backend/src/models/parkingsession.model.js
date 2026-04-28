@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const parkingHistorySchema = new mongoose.Schema(
+const parkingSessionSchema = new mongoose.Schema(
     {
         _id: {
             type: String,
@@ -8,7 +8,7 @@ const parkingHistorySchema = new mongoose.Schema(
         },
         userId: {
             type: String,
-            required: true,
+            default: 'iot-simulator',
         },
         plateNumber: {
             type: String,
@@ -26,6 +26,12 @@ const parkingHistorySchema = new mongoose.Schema(
             enum: ['parked', 'exited'],
             default: 'parked',
         },  
+        slotId: {
+            type: String,
+        },
+        duration: {
+            type: Number,
+        },
         parkingLot: {
             type: String,
             required: true,
@@ -36,13 +42,13 @@ const parkingHistorySchema = new mongoose.Schema(
     }
 );
 
-parkingHistorySchema.set('toJSON', {
+parkingSessionSchema.set('toJSON', {
     transform: (_, record) => {
         delete record.__v;
         return record;
     },
 });
 
-const ParkingHistory = mongoose.models.ParkingHistory || mongoose.model('ParkingHistory', parkingHistorySchema);
+const ParkingSession = mongoose.models.ParkingSession || mongoose.model('ParkingSession', parkingSessionSchema);
 
-export default ParkingHistory;
+export default ParkingSession;

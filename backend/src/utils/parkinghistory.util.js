@@ -1,7 +1,7 @@
-import ParkingHistory from '../models/parkinghistory.model.js';
+import ParkingSession from '../models/parkingsession.model.js';
 import { seedDemoUsers } from './user.util.js';
 
-const demoParkingHistories = [
+const demoParkingSessions = [
     {
         username: '2452712',
         plateNumber: '59A-12345',
@@ -23,31 +23,31 @@ export const seedDemoParkingHistories = async () => {
     const users = await seedDemoUsers();
     const usersByUsername = new Map(users.map((user) => [user.username, user]));
 
-    const operations = demoParkingHistories
-        .map((history) => {
-            const user = usersByUsername.get(history.username);
+    const operations = demoParkingSessions
+        .map((session) => {
+            const user = usersByUsername.get(session.username);
 
             if (!user) {
                 return null;
             }
 
-            const historyToInsert = {
+            const sessionToInsert = {
                 userId: user._id,
-                plateNumber: history.plateNumber,
-                entryTime: history.entryTime,
-                exitTime: history.exitTime,
-                status: history.status,
-                parkingLot: history.parkingLot,
+                plateNumber: session.plateNumber,
+                entryTime: session.entryTime,
+                exitTime: session.exitTime,
+                status: session.status,
+                parkingLot: session.parkingLot,
             };
 
             return {
                 updateOne: {
                     filter: {
                         userId: user._id,
-                        plateNumber: history.plateNumber,
-                        entryTime: history.entryTime,
+                        plateNumber: session.plateNumber,
+                        entryTime: session.entryTime,
                     },
-                    update: { $setOnInsert: historyToInsert },
+                    update: { $setOnInsert: sessionToInsert },
                     upsert: true,
                 },
             };
@@ -55,19 +55,19 @@ export const seedDemoParkingHistories = async () => {
         .filter(Boolean);
 
     if (operations.length > 0) {
-        await ParkingHistory.bulkWrite(operations);
+        await ParkingSession.bulkWrite(operations);
     }
 };
 
-export const addParkingHistory = async (history) => ParkingHistory.create(history);
+export const addParkingSession = async (session) => ParkingSession.create(session);
 
-export const getParkingHistoryByUserId = async (userId) =>
-  ParkingHistory.find({ userId }).lean();
+export const getParkingSessionByUserId = async (userId) =>
+  ParkingSession.find({ userId }).lean();
 
-export const getAllParkingHistories = async () => ParkingHistory.find().lean();
+export const getAllParkingSessions = async () => ParkingSession.find().lean();
 
-export const updateParkingHistoryExitTime = async (id, exitTime) =>
-    ParkingHistory.findByIdAndUpdate(
+export const updateParkingSessionExitTime = async (id, exitTime) =>
+    ParkingSession.findByIdAndUpdate(
         id,
         { exitTime, status: 'exited' },
         { new: true }
