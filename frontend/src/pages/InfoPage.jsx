@@ -10,9 +10,7 @@ function InfoPage({}) {
             try {
                 const response = await fetch('/apiv1/auth/user-info', {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    credentials: 'include',
                 });
 
                 if (!response.ok) {
@@ -20,7 +18,6 @@ function InfoPage({}) {
                 }
 
                 const userData = await response.json();
-                console.log('Fetched user info:', userData);
                 setUserInfo(userData);
             } catch (error) {
                 setError(error.message);

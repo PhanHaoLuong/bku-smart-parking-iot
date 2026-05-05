@@ -1,6 +1,7 @@
-import 'dotenv/config'; // Replaces require('dotenv').config();
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 import { connectToDatabase } from './config/db.js';
 import { seedDemoData } from './utils/seed.util.js';
@@ -18,9 +19,11 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 app.use(
   cors({
     origin: FRONTEND_ORIGIN,
+    credentials: true,
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({

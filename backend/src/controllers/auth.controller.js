@@ -34,8 +34,11 @@ export const login = async (req, res) => {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const token = generateToken(res, user._id, user.role);
-  res.status(200).json({ message: 'Login successful', token });
+  generateToken(res, user._id, user.role);
+  res.status(200).json({
+    message: 'Login successful',
+    user: { id: user._id, role: user.role },
+  });
 };
 
 // Logout controller
@@ -45,17 +48,25 @@ export const logout = (req, res) => {
 };
 
 export const getUserInfo = async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  try {
+    if (!req.user?.userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-  if (!token || !tokens.has(token)) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    const user = await findUserById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({
+      id: req.user.userId,
+      role: req.user.role,
+      username: user.username,
+      fullName: user.fullName,
+      email: user.email,
+    });
+  } catch (error) {
+    res.status(401).json({ message: 'Unauthorized' });
   }
-
-  const [userId, role] = token.split('-');
-  const user = await findUserById(userId);
-  if (!user) {
-    return res.status(404).json({ message: 'User not found' });
-  }
-
-  res.status(200).json(user);
-}
+};

@@ -12,7 +12,13 @@ function ParkingHistoryPage({ role, userId }) {
                     ? '/apiv1/parking-history'
                     : `/apiv1/parking-history/${userId}`;
 
-                const response = await fetch(endpoint);
+                const response = await fetch(endpoint, {
+                    credentials: 'include',
+                });
+
+                if (response.status === 403) {
+                    throw new Error('You do not have permission to access this resource');
+                }
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch parking history');
@@ -22,7 +28,7 @@ function ParkingHistoryPage({ role, userId }) {
                 setParkingHistory(Array.isArray(data) ? data : []);
             } catch (fetchError) {
                 console.error('Error fetching parking history:', fetchError);
-                setError('Unable to load parking history.');
+                setError(fetchError.message || 'Unable to load parking history.');
             } finally {
                 setLoading(false);
             }
@@ -35,7 +41,7 @@ function ParkingHistoryPage({ role, userId }) {
         <div className="parking-history-page">
             <h1>This is Parking History Page</h1>
             {loading && <p>Loading parking history...</p>}
-            {error && <p>{error}</p>}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
             {!loading && !error && (
                 <ul>
                     {parkingHistory.map((entry) => (

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import './App.css';
 import AuthPage from './pages/AuthPage';
 import LogoutButton from './components/LogoutButton';
@@ -6,11 +7,27 @@ import DashboardPage from './pages/DashboardPage';
 import ParkingHistoryPage from './pages/ParkingHistoryPage';
 import InfoPage from './pages/InfoPage';
 import StaffDashboardPage from './pages/StaffDashboardPage';
+import { useAuth } from './stores/authStore';
 
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+// ✅ Moved outside to avoid re-creating on every render
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const { isAuthenticated, role } = useAuth();
+
+  if (!isAuthenticated) return <Navigate to="/auth" />;
+
+  if (requiredRole && role !== 'admin' && role !== 'operator') {
+    return <Navigate to="/dashboard" />;
+  }
+
+  return children;
+};
 
 function AppRoutes() {
-  const { isAuthenticated, role, userId, handleLogin, handleLogout } = useAuth();
+  const { isAuthenticated, role, userId, handleLogin, handleLogout, syncFromSession } = useAuth();
+
+  useEffect(() => {
+    void syncFromSession();
+  }, [syncFromSession]);
 
   return (
     <Routes>
@@ -32,9 +49,30 @@ function AppRoutes() {
           )
         }
       />
-      <Route path="/parking-history" element={<ParkingHistoryPage role={role} userId={userId} />} />
+      <Route
+        path="/parking-history"
+        element={
+          <ProtectedRoute>
+            <ParkingHistoryPage role={role} userId={userId} />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/info" element={<InfoPage />} />
-      <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
+      <Route
+        path="/staff-dashboard"
+        element={
+          <ProtectedRoute requiredRole="admin-or-operator">
+            {role === 'admin' || role === 'operator' ? (
+              <div>
+                <StaffDashboardPage />
+                <LogoutButton onLogout={handleLogout} />
+              </div>
+            ) : (
+              <Navigate to="/dashboard" />
+            )}
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/auth" />} />
     </Routes>
   );
@@ -42,11 +80,9 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <Router>
+      <AppRoutes />
+    </Router>
   );
 }
 
