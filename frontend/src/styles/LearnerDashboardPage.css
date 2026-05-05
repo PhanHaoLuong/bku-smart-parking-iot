@@ -1,0 +1,265 @@
+.learner-dashboard {
+  min-height: 100vh;
+  display: flex;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.learner-sidebar {
+  width: 260px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.learner-logo h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.learner-logo p {
+  margin: 8px 0 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.learner-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.learner-nav-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.learner-nav-link:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.learner-nav-link.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.learner-logout-button {
+  margin-top: auto;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ef4444;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.learner-logout-button:hover {
+  background: #dc2626;
+}
+
+.learner-main {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.learner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.learner-subtitle {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.learner-header h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.learner-user-badge {
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 10px 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.learner-user-badge span {
+  color: #2563eb;
+}
+
+.learner-welcome-card {
+  background: linear-gradient(135deg, #2563eb, #0f172a);
+  color: white;
+  border-radius: 24px;
+  padding: 32px;
+  margin-bottom: 28px;
+  box-shadow: 0 16px 40px rgba(37, 99, 235, 0.24);
+}
+
+.learner-welcome-card h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.learner-welcome-card p {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: #dbeafe;
+  line-height: 1.6;
+}
+
+.learner-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 34px;
+}
+
+.learner-stat-card {
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.learner-stat-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.learner-stat-card h3 {
+  margin: 12px 0 6px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.learner-stat-card span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.learner-section {
+  margin-bottom: 34px;
+}
+
+.learner-section-header {
+  margin-bottom: 16px;
+}
+
+.learner-section-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.learner-section-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.learner-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.learner-action-card {
+  background: white;
+  border-radius: 18px;
+  padding: 22px;
+  text-decoration: none;
+  color: #0f172a;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  transition: 0.2s ease;
+}
+
+.learner-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.13);
+}
+
+.learner-action-card h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.learner-action-card p {
+  margin: 10px 0 0;
+  color: #64748b;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.learner-recent-card {
+  background: white;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.learner-empty-state {
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 28px;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+@media (max-width: 1100px) {
+  .learner-stats-grid,
+  .learner-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .learner-dashboard {
+    flex-direction: column;
+  }
+
+  .learner-sidebar {
+    width: auto;
+  }
+
+  .learner-main {
+    padding: 22px;
+  }
+
+  .learner-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .learner-stats-grid,
+  .learner-action-grid {
+    grid-template-columns: 1fr;
+  }
+}

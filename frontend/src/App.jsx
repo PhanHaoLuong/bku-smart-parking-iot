@@ -1,17 +1,24 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import "./App.css";
 
-import LoginPage from './pages/LoginPage';
-import LogoutButton from './components/LogoutButton';
-import DashboardPage from './pages/DashboardPage';
-import ParkingHistoryPage from './pages/ParkingHistoryPage';
-import InfoPage from './pages/InfoPage';
-import StaffDashboardPage from './pages/StaffDashboardPage';
+import LoginPage from "./pages/LoginPage";
+import LogoutButton from "./components/LogoutButton";
+import DashboardPage from "./pages/DashboardPage";
+import LearnerDashboardPage from "./pages/LearnerDashboardPage";
+import ParkingHistoryPage from "./pages/ParkingHistoryPage";
+import InfoPage from "./pages/InfoPage";
+import StaffDashboardPage from "./pages/StaffDashboardPage";
 
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function AppRoutes() {
-  const { isAuthenticated, role, userId, handleLogin, handleLogout } = useAuth();
+  const { isAuthenticated, role, userId, handleLogin, handleLogout } =
+    useAuth();
 
   return (
     <Routes>
@@ -30,11 +37,7 @@ function AppRoutes() {
         path="/dashboard"
         element={
           isAuthenticated ? (
-            <div>
-              <h2>Welcome to the Dashboard</h2>
-              <DashboardPage />
-              <LogoutButton onLogout={handleLogout} />
-            </div>
+            <LearnerDashboardPage />
           ) : (
             <Navigate to="/auth" replace />
           )
@@ -55,18 +58,15 @@ function AppRoutes() {
       <Route
         path="/info"
         element={
-          isAuthenticated ? (
-            <InfoPage />
-          ) : (
-            <Navigate to="/auth" replace />
-          )
+          isAuthenticated ? <InfoPage /> : <Navigate to="/auth" replace />
         }
       />
 
       <Route
         path="/staff-dashboard"
         element={
-          isAuthenticated && (role === 'admin' || role === 'operator') ? (
+          isAuthenticated &&
+          (role === "admin" || role === "operator" || role === "staff") ? (
             <StaffDashboardPage />
           ) : (
             <Navigate to="/dashboard" replace />
