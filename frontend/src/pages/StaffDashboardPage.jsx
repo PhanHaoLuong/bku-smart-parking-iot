@@ -8,14 +8,10 @@ function StaffDashboardPage({}) {
 
     useEffect(() => {
         // Simulate fetching real-time data
-        const fetchData = () => {
+        const fetchData = async () => {
             // Replace this with your actual data fetching logic
-            setRealTimeData({
-                entryExitCamera: 'Active',
-                exceptionAlerts: 5,
-                logs: ['Log 1', 'Log 2', 'Log 3'],
-                parkingSpaceAvailability: 80
-            });
+            const data = await fetch('/apiv1/monitoring/summary');
+            setRealTimeData(await data.json());
         };
 
         fetchData();
@@ -27,18 +23,13 @@ function StaffDashboardPage({}) {
     return(
         <div className="staff-dashboard-page">
             <h1>This is Staff Dashboard Page</h1>
-            {realTimeData && (
+            {realTimeData ? (
                 <div>
-                    <p>Entry/Exit Camera: {realTimeData.entryExitCamera}</p>
-                    <p>Exception Alerts: {realTimeData.exceptionAlerts}</p>
-                    <p>Parking Space Availability: {realTimeData.parkingSpaceAvailability}%</p>
-                    <h2>Logs:</h2>
-                    <ul>
-                        {realTimeData.logs.map((log, index) => (
-                            <li key={index}>{log}</li>
-                        ))}
-                    </ul>
+                    <h2>Real-Time Data</h2>
+                    <pre>{JSON.stringify(realTimeData, null, 2)}</pre>
                 </div>
+            ) : (
+                <p>Loading real-time data...</p>
             )}
         </div>
     )
