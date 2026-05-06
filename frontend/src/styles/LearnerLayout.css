@@ -1,0 +1,126 @@
+.learner-layout {
+  min-height: 100vh;
+  display: flex;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.learner-layout-sidebar {
+  width: 260px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.learner-layout-logo h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.learner-layout-logo p {
+  margin: 8px 0 0;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.learner-layout-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.learner-layout-nav-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.learner-layout-nav-link:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.learner-layout-nav-link.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.learner-layout-logout-button {
+  margin-top: auto;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ef4444;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.learner-layout-logout-button:hover {
+  background: #dc2626;
+}
+
+.learner-layout-main {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.learner-layout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.learner-layout-subtitle {
+  margin: 0 0 6px;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.learner-layout-header h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.learner-layout-role-badge {
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 10px 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  font-weight: 700;
+  text-transform: capitalize;
+  color: #2563eb;
+}
+
+@media (max-width: 760px) {
+  .learner-layout {
+    flex-direction: column;
+  }
+
+  .learner-layout-sidebar {
+    width: auto;
+  }
+
+  .learner-layout-main {
+    padding: 22px;
+  }
+
+  .learner-layout-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
