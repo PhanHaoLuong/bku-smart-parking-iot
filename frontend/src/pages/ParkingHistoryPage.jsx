@@ -36,7 +36,9 @@ function ParkingHistoryPage({ role, userId }) {
             ? '/apiv1/parking-history'
             : `/apiv1/parking-history/${userId}`;
 
-        const response = await fetch(endpoint);
+        const response = await fetch(endpoint, {
+          credentials: 'include',
+        });
 
         if (!response.ok) {
           throw new Error('Failed to fetch parking history');

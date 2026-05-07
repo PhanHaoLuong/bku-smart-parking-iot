@@ -24,9 +24,7 @@ function InfoPage() {
 
         const response = await fetch('/apiv1/auth/user-info', {
           method: 'GET',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
+          credentials: 'include',
         });
 
         if (!response.ok) {

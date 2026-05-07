@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../stores/authStore.js';
 import '../../styles/LearnerLayout.css';
 
 function LearnerLayout({ children, title, subtitle }) {

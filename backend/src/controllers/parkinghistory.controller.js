@@ -7,11 +7,12 @@ export const getParkingHistory = async (req, res) => {
     let parkingHistories;
     if (id) {
       parkingHistories = await getParkingSessionByUserId(id);
-      if (!parkingHistories) {
-        return res.status(404).json({ message: 'Parking history not found for user' });
-      }
     } else {
-      parkingHistories = await getAllParkingSessions();
+      if (req.user.role === 'admin' || req.user.role === 'operator') {
+        parkingHistories = await getAllParkingSessions();
+      } else {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
     }
     res.status(200).json(parkingHistories);
   } catch (error) {

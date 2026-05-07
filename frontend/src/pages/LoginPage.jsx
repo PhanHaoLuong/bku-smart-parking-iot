@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import { login } from '../api/authApi';
-import { saveToken } from '../utils/authStorage';
 import '../styles/LoginPage.css';
 
 function LoginPage({ onLogin }) {
@@ -24,10 +23,8 @@ function LoginPage({ onLogin }) {
 
       const data = await login(username, password);
 
-      saveToken(data.token);
-
       if (onLogin) {
-        onLogin();
+        onLogin(data.user);
       }
 
       navigate('/dashboard');

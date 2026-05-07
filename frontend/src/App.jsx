@@ -4,6 +4,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { useEffect } from 'react';
 import "./App.css";
 
 import LoginPage from "./pages/LoginPage";
@@ -14,11 +15,27 @@ import ParkingHistoryPage from "./pages/ParkingHistoryPage";
 import InfoPage from "./pages/InfoPage";
 import StaffDashboardPage from "./pages/StaffDashboardPage";
 
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { useAuth } from './stores/authStore';
+
+// ✅ Moved outside to avoid re-creating on every render
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const { isAuthenticated, role } = useAuth();
+
+  if (!isAuthenticated) return <Navigate to="/auth" />;
+
+  if (requiredRole && role !== 'admin' && role !== 'operator') {
+    return <Navigate to="/dashboard" />;
+  }
+
+  return children;
+};
 
 function AppRoutes() {
-  const { isAuthenticated, role, userId, handleLogin, handleLogout } =
-    useAuth();
+  const { isAuthenticated, role, userId, handleLogin, handleLogout, syncFromSession } = useAuth();
+
+  useEffect(() => {
+    void syncFromSession();
+  }, [syncFromSession]);
 
   return (
     <Routes>
@@ -81,11 +98,9 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <Router>
+      <AppRoutes />
+    </Router>
   );
 }
 

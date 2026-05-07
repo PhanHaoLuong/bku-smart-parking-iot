@@ -6,6 +6,7 @@ export async function login(username, password) {
     headers: {
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify({
       username,
       password,
@@ -21,15 +22,13 @@ export async function login(username, password) {
   return data;
 }
 
-export async function logout(token) {
+export async function logout() {
   const response = await fetch(`${API_BASE_URL}/logout`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      token,
-    }),
+    credentials: 'include',
   });
 
   const data = await response.json();

@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 import User from '../models/user.model.js';
 
 export const seedDemoUsers = async () => {
@@ -23,7 +25,14 @@ export const findUserByUsername = async (username) => User.findOne({ username })
 
 export const findUserById = async (id) => User.findById(id).lean();
 
-export const validateUser = async (username, password) =>
-  User.findOne({ username, password }).lean();
+export const validateUser = async (username, password) => {
+  const user = await User.findOne({ username }).lean();
+  if (!user) return null;
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return null;
+
+  return user;
+};
 
 export const getAllUsers = async () => User.find().lean();

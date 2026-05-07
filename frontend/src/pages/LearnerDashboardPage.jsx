@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../stores/authStore.js';
 import '../styles/LearnerDashboardPage.css';
 
 function LearnerDashboardPage() {

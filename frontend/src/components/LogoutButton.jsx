@@ -1,16 +1,12 @@
+import { useAuth } from '../stores/authStore';
+
 function LogoutButton({ onLogout }) {
+  const handleStoreLogout = useAuth((state) => state.handleLogout);
+
   const handleLogout = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     try {
-      await fetch('/apiv1/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
-
-      onLogout(); // Notify parent component
+      await handleStoreLogout();
+      onLogout?.();
     } catch (error) {
       console.error('Logout failed:', error);
     }
