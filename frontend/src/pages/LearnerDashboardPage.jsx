@@ -3,7 +3,7 @@ import { useAuth } from '../stores/authStore.js';
 import '../styles/LearnerDashboardPage.css';
 
 function LearnerDashboardPage() {
-  const { userId, role, handleLogout } = useAuth();
+  const { username, userId, role, handleLogout } = useAuth();
 
   return (
     <div className="learner-dashboard">
@@ -46,7 +46,7 @@ function LearnerDashboardPage() {
 
         <section className="learner-welcome-card">
           <div>
-            <h2>Hello, {userId || 'Learner'}</h2>
+            <h2>Hello, {username || 'Learner'}</h2>
             <p>
               Manage your parking information, check your history, and follow
               your parking activities in BKU Smart Parking.

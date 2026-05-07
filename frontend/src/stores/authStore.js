@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { logout } from '../api/authApi';
 
 export const useAuth = create((set) => ({
+  username: null,
   userId: null,
   role: null,
   isAuthenticated: false,
   handleLogin: (user) =>
     set({
+      username: user?.username ?? null,
       userId: user?.id ?? null,
       role: user?.role ?? null,
       isAuthenticated: !!user?.id && !!user?.role,
@@ -16,6 +18,7 @@ export const useAuth = create((set) => ({
       await logout();
     } finally {
       set({
+        username: null,
         userId: null,
         role: null,
         isAuthenticated: false,
@@ -30,18 +33,19 @@ export const useAuth = create((set) => ({
       });
 
       if (!response.ok) {
-        set({ userId: null, role: null, isAuthenticated: false });
+        set({ username: null, userId: null, role: null, isAuthenticated: false });
         return;
       }
 
       const user = await response.json();
       set({
+        username: user?.username ?? null,
         userId: user?.id ?? null,
         role: user?.role ?? null,
         isAuthenticated: !!user?.id && !!user?.role,
       });
     } catch {
-      set({ userId: null, role: null, isAuthenticated: false });
+      set({ username: null, userId: null, role: null, isAuthenticated: false });
     }
   },
 }));
