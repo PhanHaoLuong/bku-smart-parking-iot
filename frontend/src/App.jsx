@@ -6,11 +6,16 @@ import DashboardPage from './pages/DashboardPage';
 import ParkingHistoryPage from './pages/ParkingHistoryPage';
 import InfoPage from './pages/InfoPage';
 import StaffDashboardPage from './pages/StaffDashboardPage';
+import FinanceDashboardPage from './pages/FinanceDashboardPage';
+import PricingConfigPage from './pages/PricingConfigPage';
+import InvoiceListPage from './pages/InvoiceListPage';
+import AuditTrailPage from './pages/AuditTrailPage';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 function AppRoutes() {
   const { isAuthenticated, role, userId, handleLogin, handleLogout } = useAuth();
+  const isFinance = role === 'finance' || role === 'admin';
 
   return (
     <Routes>
@@ -24,7 +29,7 @@ function AppRoutes() {
           isAuthenticated ? (
             <div>
               <h2>Welcome to the Dashboard</h2>
-              <DashboardPage />
+              <DashboardPage role={role} />
               <LogoutButton onLogout={handleLogout} />
             </div>
           ) : (
@@ -35,6 +40,16 @@ function AppRoutes() {
       <Route path="/parking-history" element={<ParkingHistoryPage role={role} userId={userId} />} />
       <Route path="/info" element={<InfoPage />} />
       <Route path="/staff-dashboard" element={<StaffDashboardPage />} />
+
+      {isFinance && (
+        <>
+          <Route path="/finance-dashboard" element={<FinanceDashboardPage />} />
+          <Route path="/finance/pricing" element={<PricingConfigPage />} />
+          <Route path="/finance/invoices" element={<InvoiceListPage />} />
+          <Route path="/finance/audit" element={<AuditTrailPage />} />
+        </>
+      )}
+
       <Route path="*" element={<Navigate to="/auth" />} />
     </Routes>
   );

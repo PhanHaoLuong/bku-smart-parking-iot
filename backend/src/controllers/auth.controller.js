@@ -1,8 +1,5 @@
-import { get } from 'mongoose';
 import { addUser, findUserById, findUserByUsername, validateUser } from '../utils/user.util.js';
-
-// Mock token storage
-const tokens = new Set();
+import { tokens } from '../utils/tokenstore.js';
 
 // Signup controller
 export const signup = async (req, res) => {
@@ -41,7 +38,8 @@ export const login = async (req, res) => {
 
 // Logout controller
 export const logout = (req, res) => {
-  const { token } = req.body;
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(' ')[1];
 
   if (!token || !tokens.has(token)) {
     return res.status(400).json({ message: 'Invalid token' });

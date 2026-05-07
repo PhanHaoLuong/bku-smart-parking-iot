@@ -8,11 +8,16 @@ function ParkingHistoryPage({ role, userId }) {
     useEffect(() => {
         const fetchParkingHistory = async () => {
             try {
-                const endpoint = role === 'admin' || role === 'operator'
+                const token = localStorage.getItem('token');
+                const endpoint = role === 'admin' || role === 'operator' || role === 'finance'
                     ? '/apiv1/parking-history'
                     : `/apiv1/parking-history/${userId}`;
 
-                const response = await fetch(endpoint);
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
 
                 if (!response.ok) {
                     throw new Error('Failed to fetch parking history');

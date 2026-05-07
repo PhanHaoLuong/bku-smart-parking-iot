@@ -10,7 +10,12 @@ function StaffDashboardPage({}) {
         // Simulate fetching real-time data
         const fetchData = async () => {
             // Replace this with your actual data fetching logic
-            const data = await fetch('/apiv1/monitoring/summary');
+            const token = localStorage.getItem('token');
+            const data = await fetch('/apiv1/monitoring/summary', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             setRealTimeData(await data.json());
         };
 

@@ -6,8 +6,10 @@ function LogoutButton({ onLogout }) {
     try {
       await fetch('/apiv1/auth/logout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       onLogout(); // Notify parent component

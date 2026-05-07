@@ -29,6 +29,11 @@ const parkingSessionSchema = new mongoose.Schema(
         slotId: {
             type: String,
         },
+        vehicleType: {
+            type: String,
+            enum: ['motorcycle', 'bicycle', 'car'],
+            default: 'motorcycle',
+        },
         duration: {
             type: Number,
         },

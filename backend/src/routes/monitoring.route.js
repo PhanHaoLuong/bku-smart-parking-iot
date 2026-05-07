@@ -4,11 +4,12 @@ import {
   getSlots,
   getActiveVehicles,
 } from '../controllers/monitoring.controller.js';
+import { requireRole } from '../middlewares/roleMiddleware.js';
 
 const router = express.Router();
 
-router.get('/summary', getSummary);
-router.get('/slots', getSlots);
-router.get('/active-vehicles', getActiveVehicles);
+router.get('/summary', requireRole('operator', 'admin', 'finance'), getSummary);
+router.get('/slots', requireRole('operator', 'admin', 'finance'), getSlots);
+router.get('/active-vehicles', requireRole('operator', 'admin', 'finance'), getActiveVehicles);
 
 export default router;

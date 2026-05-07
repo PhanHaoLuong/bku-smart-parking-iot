@@ -2,6 +2,10 @@ import User from '../models/user.model.js';
 import ParkingSession from '../models/parkingsession.model.js';
 import SlotState from '../models/slotstate.model.js';
 import Event from '../models/event.model.js';
+import PricingPolicy from '../models/pricingpolicy.model.js';
+import Invoice from '../models/invoice.model.js';
+import VisitorTransaction from '../models/visitortransaction.model.js';
+import AuditLog from '../models/auditlog.model.js';
 
 const LOTS = [
   { lotId: 'lot-1', slotPrefix: 'L1' },
@@ -18,6 +22,7 @@ const demoUsers = [
     username: '2452712',
     password: '123',
     role: 'learner',
+    userType: 'learner',
     cardActive: true,
     fullName: 'Phan Van A',
     email: 'a.phanvan@hcmut.edu.vn',
@@ -26,6 +31,7 @@ const demoUsers = [
     username: 'fstaff',
     password: '123',
     role: 'operator',
+    userType: 'staff',
     cardActive: true,
     fullName: 'Facility Staff',
     email: 'staff@hcmut.edu.vn',
@@ -34,6 +40,7 @@ const demoUsers = [
     username: 'admin',
     password: '123',
     role: 'admin',
+    userType: 'staff',
     cardActive: true,
     fullName: 'Admin User',
     email: 'admin@hcmut.edu.vn',
@@ -50,6 +57,7 @@ const demoUsers = [
     username: 'faculty01',
     password: '123',
     role: 'faculty',
+    userType: 'faculty',
     cardActive: true,
     fullName: 'Faculty Member',
     email: 'faculty01@hcmut.edu.vn',
@@ -58,9 +66,19 @@ const demoUsers = [
     username: 'learner02',
     password: '123',
     role: 'learner',
+    userType: 'learner',
     cardActive: true,
     fullName: 'Learner Two',
     email: 'learner02@hcmut.edu.vn',
+  },
+  {
+    username: 'finance01',
+    password: '123',
+    role: 'finance',
+    userType: 'staff',
+    cardActive: true,
+    fullName: 'Finance Officer',
+    email: 'finance@hcmut.edu.vn',
   },
 ];
 
@@ -147,6 +165,9 @@ function buildParkingTimeline(slot, user, state, baseTime, eventSeed) {
     timestamp: heartbeatTime,
   };
 
+  const vehicleTypes = ['motorcycle', 'bicycle', 'car'];
+  const assignedVehicleType = vehicleTypes[eventSeed % 3];
+
   if (state === 'occupied') {
     return {
       session: {
@@ -155,6 +176,7 @@ function buildParkingTimeline(slot, user, state, baseTime, eventSeed) {
         entryTime,
         status: 'parked',
         slotId: slot.slotId,
+        vehicleType: assignedVehicleType,
         parkingLot: slot.lotId,
       },
       slotState: {
@@ -201,6 +223,7 @@ function buildParkingTimeline(slot, user, state, baseTime, eventSeed) {
       status: 'exited',
       slotId: slot.slotId,
       duration: durationSeconds,
+      vehicleType: assignedVehicleType,
       parkingLot: slot.lotId,
     },
     slotState: {
@@ -329,6 +352,166 @@ export const seedDemoParkingInfrastructure = async () => {
   };
 };
 
+const defaultPolicies = [
+  { userType: 'learner', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 2000, eveningRate: 3000, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'learner', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 1000, eveningRate: 1000, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'learner', vehicleType: 'car', pricingMode: 'per-session', daytimeRate: 5000, eveningRate: 7000, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'faculty', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 2000, eveningRate: 3000, discountPercent: 50, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'faculty', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 0, eveningRate: 0, isFree: true, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'faculty', vehicleType: 'car', pricingMode: 'per-session', daytimeRate: 5000, eveningRate: 7000, discountPercent: 30, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'staff', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 2000, eveningRate: 3000, discountPercent: 20, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'staff', vehicleType: 'car', pricingMode: 'per-session', daytimeRate: 5000, eveningRate: 7000, discountPercent: 10, billingCycle: 'monthly', billingCycleDay: 1 },
+  { userType: 'visitor', vehicleType: 'motorcycle', pricingMode: 'per-hour', firstHourRate: 5000, subsequentHourlyRate: 2000 },
+  { userType: 'visitor', vehicleType: 'bicycle', pricingMode: 'per-hour', firstHourRate: 2000, subsequentHourlyRate: 1000 },
+  { userType: 'visitor', vehicleType: 'car', pricingMode: 'per-hour', firstHourRate: 10000, subsequentHourlyRate: 5000 },
+];
+
+const seedDefaultPolicies = async () => {
+  const admin = await User.findOne({ role: 'admin' }).lean();
+  const adminId = admin?._id?.toString() || 'system';
+
+  for (const policy of defaultPolicies) {
+    await PricingPolicy.findOneAndUpdate(
+      { userType: policy.userType, vehicleType: policy.vehicleType, isActive: true },
+      { $setOnInsert: { ...policy, isActive: true, createdBy: adminId, updatedBy: adminId } },
+      { upsert: true }
+    );
+  }
+};
+
+const seedDemoBillingData = async () => {
+  await Promise.all([
+    PricingPolicy.deleteMany({}),
+    Invoice.deleteMany({}),
+    VisitorTransaction.deleteMany({}),
+    AuditLog.deleteMany({}),
+  ]);
+
+  await seedDefaultPolicies();
+
+  const users = await User.find({}).lean();
+  const userMap = {};
+  for (const u of users) userMap[u.username] = u;
+
+  const adminUser = users.find((u) => u.role === 'admin');
+  const adminId = adminUser?._id?.toString() || 'system';
+
+  const learner1 = userMap['2452712'];
+  const learner2 = userMap['learner02'];
+
+  const sessions = await ParkingSession.find({ status: 'exited' }).lean();
+
+  if (learner1) {
+    const learner1Sessions = sessions.filter((s) => s.userId === learner1._id.toString()).slice(0, 3);
+    const now = new Date();
+    const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const dueDate = new Date(periodEnd);
+    dueDate.setDate(dueDate.getDate() + 15);
+
+    if (learner1Sessions.length > 0) {
+      const items = learner1Sessions.map((s) => ({
+        sessionId: s._id,
+        plateNumber: s.plateNumber,
+        entryTime: s.entryTime,
+        exitTime: s.exitTime,
+        rate: 2000,
+        amount: 2000,
+        vehicleType: s.vehicleType || 'motorcycle',
+      }));
+      const total1 = items.reduce((sum, i) => sum + i.amount, 0);
+
+      await Invoice.create({
+        userId: learner1._id.toString(),
+        billingPeriodStart: periodStart,
+        billingPeriodEnd: periodEnd,
+        totalAmount: total1,
+        status: 'paid',
+        dueDate,
+        paidAt: new Date(),
+        paidAmount: total1,
+        paidBy: adminId,
+        items,
+      });
+    }
+  }
+
+  if (learner2) {
+    const learner2Sessions = sessions.filter((s) => s.userId === learner2._id.toString()).slice(0, 2);
+    const now = new Date();
+    const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const dueDate = new Date(periodEnd);
+    dueDate.setDate(dueDate.getDate() + 15);
+
+    if (learner2Sessions.length > 0) {
+      const items = learner2Sessions.map((s) => ({
+        sessionId: s._id,
+        plateNumber: s.plateNumber,
+        entryTime: s.entryTime,
+        exitTime: s.exitTime,
+        rate: 2000,
+        amount: 2000,
+        vehicleType: s.vehicleType || 'motorcycle',
+      }));
+      const total2 = items.reduce((sum, i) => sum + i.amount, 0);
+
+      await Invoice.create({
+        userId: learner2._id.toString(),
+        billingPeriodStart: periodStart,
+        billingPeriodEnd: periodEnd,
+        totalAmount: total2,
+        status: 'pending',
+        dueDate,
+        items,
+      });
+    }
+  }
+
+  const visitorSession = sessions.find((s) => s.userId === 'iot-simulator') || sessions[0];
+  if (visitorSession) {
+    const entryTime = new Date(visitorSession.entryTime);
+    const exitTime = visitorSession.exitTime || new Date(entryTime.getTime() + 2 * 60 * 60 * 1000);
+    const durationMs = exitTime.getTime() - entryTime.getTime();
+    const durationHours = Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60)));
+
+    await VisitorTransaction.create({
+      sessionId: visitorSession._id,
+      plateNumber: visitorSession.plateNumber,
+      entryTime,
+      exitTime,
+      durationHours,
+      totalAmount: 5000 + (durationHours - 1) * 2000,
+      status: 'pending',
+    });
+  }
+
+  await AuditLog.create({
+    action: 'pricing_created',
+    performedBy: adminId,
+    performedByRole: 'admin',
+    description: 'Seeded default pricing policies',
+    details: { count: defaultPolicies.length },
+    timestamp: new Date(),
+  });
+
+  await AuditLog.create({
+    action: 'invoice_generated',
+    performedBy: adminId,
+    performedByRole: 'admin',
+    description: 'Seeded demo invoices for learners 2452712 and learner02',
+    details: {},
+    timestamp: new Date(),
+  });
+
+  const count = await Invoice.countDocuments();
+  const txnCount = await VisitorTransaction.countDocuments();
+  const policyCount = await PricingPolicy.countDocuments();
+
+  return { invoices: count, visitorTxns: txnCount, policies: policyCount };
+};
+
 export const seedDemoData = async () => {
-  return seedDemoParkingInfrastructure();
+  await seedDemoParkingInfrastructure();
+  await seedDemoBillingData();
 };
