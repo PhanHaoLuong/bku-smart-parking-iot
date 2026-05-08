@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import LearnerLayout from '../components/learner/LearnerLayout';
 import { authedFetch } from '../api/authedFetch';
 import '../styles/ParkingHistoryPage.css';
@@ -87,6 +88,10 @@ function ParkingHistoryPage({ role, userId }) {
             <h2>Recent Parking Records</h2>
             <p>Review plate number, entry time, exit time, and parking status.</p>
           </div>
+
+          <Link to="/billing" className="btn-secondary">
+            View Billing
+          </Link>
         </div>
 
         {loading && (

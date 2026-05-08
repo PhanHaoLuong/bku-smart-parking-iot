@@ -46,6 +46,7 @@ function AppRoutes() {
       />
       <Route path="/dashboard" element={<ProtectedRoute><LearnerDashboardPage role={role} userId={userId} /></ProtectedRoute>} />
       <Route path="/parking-history" element={<ProtectedRoute><ParkingHistoryPage role={role} userId={userId} /></ProtectedRoute>} />
+      <Route path="/billing" element={<ProtectedRoute><InvoiceListPage /></ProtectedRoute>} />
       <Route path="/info" element={<ProtectedRoute><InfoPage /></ProtectedRoute>} />
       <Route path="/staff-dashboard" element={<ProtectedRoute><StaffDashboardPage /></ProtectedRoute>} />
 

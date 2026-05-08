@@ -102,9 +102,9 @@ function LearnerDashboardPage() {
               <p>Search for available parking slots near your area.</p>
             </Link>
 
-            <Link to="/dashboard" className="learner-action-card">
+            <Link to="/billing" className="learner-action-card">
               <h3>Payment</h3>
-              <p>Review and complete your pending parking payments.</p>
+              <p>Review invoices generated from your parking history and pay them here.</p>
             </Link>
           </div>
         </section>

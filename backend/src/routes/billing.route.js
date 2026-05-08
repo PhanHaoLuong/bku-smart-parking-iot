@@ -31,7 +31,7 @@ router.delete('/policies/:id', requireRole('finance', 'admin'), handleDeactivate
 router.get('/invoices', requireRole('finance', 'admin', 'learner', 'faculty'), handleListInvoices);
 router.get('/invoices/:id', requireRole('finance', 'admin', 'learner', 'faculty'), handleGetInvoiceById);
 router.post('/invoices/generate', requireRole('finance', 'admin'), handleGenerateInvoices);
-router.put('/invoices/:id/pay', requireRole('finance', 'admin'), handleMarkInvoicePaid);
+router.put('/invoices/:id/pay', requireRole('finance', 'admin', 'learner', 'faculty'), handleMarkInvoicePaid);
 router.get('/invoices/outstanding/list', requireRole('finance', 'admin'), handleGetOutstandingList);
 
 // ─── Visitor Transactions (finance/admin only) ─────────────────────────

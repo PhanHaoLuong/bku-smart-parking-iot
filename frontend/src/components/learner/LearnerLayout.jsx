@@ -37,6 +37,17 @@ function LearnerLayout({ children, title, subtitle }) {
           </NavLink>
 
           <NavLink
+            to="/billing"
+            className={({ isActive }) =>
+              isActive
+                ? 'learner-layout-nav-link active'
+                : 'learner-layout-nav-link'
+            }
+          >
+            Billing
+          </NavLink>
+
+          <NavLink
             to="/info"
             className={({ isActive }) =>
               isActive
