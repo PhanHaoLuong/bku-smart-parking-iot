@@ -1,27 +1,30 @@
 import { getParkingSessionByUserId, getAllParkingSessions } from '../utils/parkinghistory.util.js';
 
 export const getParkingHistory = async (req, res) => {
-  const { id } = req.params;
-  const requesterId = req.user?.id;
+  const { id: paramUserId } = req.params;
+  const requesterId = req.user?.userId || req.user?.id;
   const requesterRole = req.user?.role;
+  const canAccessAll = ['operator', 'admin', 'finance'].includes(requesterRole);
 
   try {
     let parkingHistories;
-    if (id) {
-      // Learners/faculty can only see their own history
-      if ((requesterRole === 'learner' || requesterRole === 'faculty') && id !== requesterId) {
-        return res.status(403).json({ message: 'Forbidden' });
+    if (!paramUserId) {
+      if (!requesterId) {
+        return res.status(401).json({ message: 'Unauthorized' });
       }
-      parkingHistories = await getParkingSessionByUserId(id);
-      if (!parkingHistories) {
-        return res.status(404).json({ message: 'Parking history not found for user' });
-      }
+
+      parkingHistories = canAccessAll
+        ? await getAllParkingSessions()
+        : await getParkingSessionByUserId(requesterId);
     } else {
-      // Only operators/admins/finance can list all
-      if (requesterRole !== 'operator' && requesterRole !== 'admin' && requesterRole !== 'finance') {
+      const isSelfRequest = String(paramUserId) === String(requesterId);
+      const canAccessAnyUser = canAccessAll;
+
+      if (!isSelfRequest && !canAccessAnyUser) {
         return res.status(403).json({ message: 'Forbidden' });
       }
-      parkingHistories = await getAllParkingSessions();
+
+      parkingHistories = await getParkingSessionByUserId(paramUserId);
     }
     res.status(200).json(parkingHistories);
   } catch (error) {

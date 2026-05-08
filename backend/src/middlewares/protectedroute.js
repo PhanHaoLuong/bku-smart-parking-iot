@@ -1,17 +1,25 @@
-import { tokens } from '../utils/tokenstore.js';
+import jsonwebtoken from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const protectedRoute = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Unauthorized — no token provided' });
-  }
+    try {
+        const token = req.cookies.token;
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }   
 
-  const token = authHeader.split(' ')[1];
-  if (!token || !tokens.has(token)) {
-    return res.status(401).json({ message: 'Unauthorized — invalid token' });
-  }
+        const decoded = jsonwebtoken.verify(token, process.env.JWT_SECRET);
+        if (!decoded) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
 
-  const [userId, role] = token.split('-');
-  req.user = { id: userId, role };
-  next();
+        const { userId, role, id, sub } = decoded;
+        const normalizedId = userId || id || sub;
+        req.user = { id: normalizedId, role, userId };
+        next();
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
 };

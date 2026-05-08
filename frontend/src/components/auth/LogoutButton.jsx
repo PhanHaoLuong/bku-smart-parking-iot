@@ -1,4 +1,4 @@
-import { useAuth } from '../stores/authStore';
+import { useAuth } from '../../stores/authStore';
 
 function LogoutButton({ onLogout }) {
   const handleStoreLogout = useAuth((state) => state.handleLogout);

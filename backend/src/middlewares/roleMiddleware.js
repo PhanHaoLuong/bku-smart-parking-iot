@@ -1,21 +1,28 @@
-import { tokens } from '../utils/tokenstore.js';
+import jwt from 'jsonwebtoken';
 
 export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = req.cookies && req.cookies.token;
+    if (!token) {
       return res.status(401).json({ message: 'Unauthorized — no token provided' });
     }
 
-    const token = authHeader.split(' ')[1];
-    if (!token || !tokens.has(token)) {
-      return res.status(401).json({ message: 'Unauthorized — invalid token' });
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: 'Unauthorized — invalid or expired token' });
     }
 
-    const [userId, role] = token.split('-');
+    const userId = payload.userId || payload.id || payload.sub;
+    const role = payload.role;
+
+    if (!userId || !role) {
+      return res.status(401).json({ message: 'Unauthorized — malformed token payload' });
+    }
 
     if (role === 'admin') {
-      req.user = { id: userId, role };
+      req.user = { userId, role };
       return next();
     }
 
@@ -23,7 +30,7 @@ export const requireRole = (...allowedRoles) => {
       return res.status(403).json({ message: 'Forbidden — insufficient permissions' });
     }
 
-    req.user = { id: userId, role };
+    req.user = { userId, role };
     next();
   };
 };

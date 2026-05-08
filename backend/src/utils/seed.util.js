@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 import User from '../models/user.model.js';
 import ParkingSession from '../models/parkingsession.model.js';
 import SlotState from '../models/slotstate.model.js';
@@ -20,7 +22,7 @@ const EXPIRED_SESSION_RATIO = 0.3;
 const demoUsers = [
   {
     username: '2452712',
-    password: '123',
+    password: String(bcrypt.hashSync('123', 10)),
     role: 'learner',
     userType: 'learner',
     cardActive: true,
@@ -29,7 +31,7 @@ const demoUsers = [
   },
   {
     username: 'fstaff',
-    password: '123',
+    password: String(bcrypt.hashSync('123', 10)),
     role: 'operator',
     userType: 'staff',
     cardActive: true,
@@ -38,7 +40,7 @@ const demoUsers = [
   },
   {
     username: 'admin',
-    password: '123',
+    password: String(bcrypt.hashSync('123', 10)),
     role: 'admin',
     userType: 'staff',
     cardActive: true,
@@ -47,7 +49,7 @@ const demoUsers = [
   },
   {
     username: 'parkingop',
-    password: '123',
+    password: String(bcrypt.hashSync('123', 10)),
     role: 'operator',
     cardActive: true,
     fullName: 'Parking Operator',
@@ -55,7 +57,7 @@ const demoUsers = [
   },
   {
     username: 'faculty01',
-    password: '123',
+    password: String(bcrypt.hashSync('123', 10)),
     role: 'faculty',
     userType: 'faculty',
     cardActive: true,
@@ -64,7 +66,7 @@ const demoUsers = [
   },
   {
     username: 'learner02',
-    password: '123',
+    password: String(bcrypt.hashSync('123', 10)),
     role: 'learner',
     userType: 'learner',
     cardActive: true,
@@ -73,7 +75,7 @@ const demoUsers = [
   },
   {
     username: 'finance01',
-    password: '123',
+    password: String(bcrypt.hashSync('123', 10)),
     role: 'finance',
     userType: 'staff',
     cardActive: true,

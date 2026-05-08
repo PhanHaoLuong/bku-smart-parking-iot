@@ -1,0 +1,140 @@
+.parking-history-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.parking-summary-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.parking-summary-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.parking-summary-card h3 {
+  margin: 12px 0 6px;
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.parking-summary-card span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.parking-history-card {
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.parking-history-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.parking-history-card-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.parking-history-card-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.parking-table-wrapper {
+  overflow-x: auto;
+}
+
+.parking-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+}
+
+.parking-history-table th {
+  text-align: left;
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 800;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.parking-history-table td {
+  padding: 16px;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.parking-history-table tr:hover td {
+  background: #f8fafc;
+}
+
+.plate-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 7px 12px;
+  font-weight: 800;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.completed {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.parking-state-box {
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.parking-error-box {
+  border-radius: 16px;
+  padding: 16px;
+  color: #b91c1c;
+  background: #fee2e2;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .parking-history-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

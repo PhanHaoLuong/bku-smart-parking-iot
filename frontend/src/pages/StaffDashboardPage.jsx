@@ -5,18 +5,26 @@ import { useEffect, useState } from 'react';
 
 function StaffDashboardPage({}) {
     const [realTimeData, setRealTimeData] = useState(null);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         // Simulate fetching real-time data
         const fetchData = async () => {
-            // Replace this with your actual data fetching logic
-            const token = localStorage.getItem('token');
-            const data = await fetch('/apiv1/monitoring/summary', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+            try {
+                const data = await fetch('/apiv1/monitoring/summary', {
+                    credentials: 'include',
+                });
+                
+                if (!data.ok) {
+                    throw new Error('Failed to fetch monitoring data');
                 }
-            });
-            setRealTimeData(await data.json());
+                
+                const jsonData = await data.json();
+                setRealTimeData(jsonData);
+            } catch (err) {
+                console.error('Error fetching monitoring data:', err);
+                setError(err.message || 'Failed to load real-time data');
+            }
         };
 
         fetchData();
@@ -28,6 +36,7 @@ function StaffDashboardPage({}) {
     return(
         <div className="staff-dashboard-page">
             <h1>This is Staff Dashboard Page</h1>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
             {realTimeData ? (
                 <div>
                     <h2>Real-Time Data</h2>
