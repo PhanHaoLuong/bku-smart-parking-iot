@@ -8,6 +8,7 @@ import PricingPolicy from '../models/pricingpolicy.model.js';
 import Invoice from '../models/invoice.model.js';
 import VisitorTransaction from '../models/visitortransaction.model.js';
 import AuditLog from '../models/auditlog.model.js';
+import { calculateSessionFee } from './billing.util.js';
 
 const LOTS = [
   { lotId: 'lot-1', slotPrefix: 'L1' },
@@ -16,8 +17,17 @@ const LOTS = [
 
 const SLOTS_PER_LOT = 20;
 const HISTORY_DAYS = 10;
-const ACTIVE_SESSION_RATIO = 0.45;
-const EXPIRED_SESSION_RATIO = 0.3;
+const END_USER_TYPES = ['learner', 'faculty'];
+const HISTORY_ENTRIES_PER_USER = 10;
+
+const END_USER_VEHICLE_TYPES = {
+  2452712: ['motorcycle'],
+  learner02: ['motorcycle', 'bicycle'],
+  learner03: ['car'],
+  fstaff: ['motorcycle'],
+  faculty01: ['car'],
+  faculty02: ['motorcycle', 'car'],
+};
 
 const demoUsers = [
   {
@@ -30,13 +40,49 @@ const demoUsers = [
     email: 'a.phanvan@hcmut.edu.vn',
   },
   {
+    username: 'learner02',
+    password: String(bcrypt.hashSync('123', 10)),
+    role: 'learner',
+    userType: 'learner',
+    cardActive: true,
+    fullName: 'Learner Two',
+    email: 'learner02@hcmut.edu.vn',
+  },
+  {
+    username: 'learner03',
+    password: String(bcrypt.hashSync('123', 10)),
+    role: 'learner',
+    userType: 'learner',
+    cardActive: true,
+    fullName: 'Learner Three',
+    email: 'learner03@hcmut.edu.vn',
+  },
+  {
     username: 'fstaff',
     password: String(bcrypt.hashSync('123', 10)),
-    role: 'operator',
-    userType: 'staff',
+    role: 'faculty',
+    userType: 'faculty',
     cardActive: true,
-    fullName: 'Facility Staff',
+    fullName: 'Faculty Staff',
     email: 'staff@hcmut.edu.vn',
+  },
+  {
+    username: 'faculty01',
+    password: String(bcrypt.hashSync('123', 10)),
+    role: 'faculty',
+    userType: 'faculty',
+    cardActive: true,
+    fullName: 'Faculty Member One',
+    email: 'faculty01@hcmut.edu.vn',
+  },
+  {
+    username: 'faculty02',
+    password: String(bcrypt.hashSync('123', 10)),
+    role: 'faculty',
+    userType: 'faculty',
+    cardActive: true,
+    fullName: 'Faculty Member Two',
+    email: 'faculty02@hcmut.edu.vn',
   },
   {
     username: 'admin',
@@ -51,27 +97,10 @@ const demoUsers = [
     username: 'parkingop',
     password: String(bcrypt.hashSync('123', 10)),
     role: 'operator',
+    userType: 'staff',
     cardActive: true,
     fullName: 'Parking Operator',
     email: 'parking@hcmut.edu.vn',
-  },
-  {
-    username: 'faculty01',
-    password: String(bcrypt.hashSync('123', 10)),
-    role: 'faculty',
-    userType: 'faculty',
-    cardActive: true,
-    fullName: 'Faculty Member',
-    email: 'faculty01@hcmut.edu.vn',
-  },
-  {
-    username: 'learner02',
-    password: String(bcrypt.hashSync('123', 10)),
-    role: 'learner',
-    userType: 'learner',
-    cardActive: true,
-    fullName: 'Learner Two',
-    email: 'learner02@hcmut.edu.vn',
   },
   {
     username: 'finance01',
@@ -129,11 +158,23 @@ function randomHistoryBaseTime() {
   return new Date(now - randomInt(1, windowMs));
 }
 
+function buildHistorySessionStart(dayOffset, userIndex, sessionIndex) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (HISTORY_DAYS - 1 - dayOffset));
+  start.setHours(7 + (userIndex % 5), 10 + (sessionIndex * 11) % 50, 0, 0);
+  return start;
+}
+
+function getEndUserVehicleTypes(username, userIndex) {
+  return END_USER_VEHICLE_TYPES[username] || (userIndex % 2 === 0 ? ['motorcycle'] : ['car']);
+}
+
 function makeEventId(prefix, slotId, suffix) {
   return `${prefix}-${slotId}-${suffix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function buildParkingTimeline(slot, user, state, baseTime, eventSeed) {
+function buildParkingTimeline(slot, user, state, baseTime, eventSeed, vehicleType) {
   const plateNumber = createPlateNumber(eventSeed);
   const entryTime = new Date(baseTime.getTime());
   entryTime.setMinutes(entryTime.getMinutes() + randomInt(5, 45));
@@ -168,7 +209,7 @@ function buildParkingTimeline(slot, user, state, baseTime, eventSeed) {
   };
 
   const vehicleTypes = ['motorcycle', 'bicycle', 'car'];
-  const assignedVehicleType = vehicleTypes[eventSeed % 3];
+  const assignedVehicleType = vehicleType || vehicleTypes[eventSeed % 3];
 
   if (state === 'occupied') {
     return {
@@ -278,6 +319,8 @@ export const seedDemoUsers = async () => {
   return insertedUsers.map((user) => ({
     _id: user._id,
     username: user.username,
+    role: user.role,
+    userType: user.userType,
   }));
 };
 
@@ -289,54 +332,67 @@ export const seedDemoParkingInfrastructure = async () => {
   ]);
 
   const users = await seedDemoUsers();
-  const usersByIndex = shuffle(users);
   const slots = buildSlots();
 
-  const slotStateDocs = [];
   const sessionDocs = [];
   const eventDocs = [];
+  const slotStateDocsBySlot = new Map();
 
-  let userCursor = 0;
   let seedCounter = 1;
 
-  for (const slot of slots) {
-    const baseTime = randomHistoryBaseTime();
-    const roll = Math.random();
-    const user = usersByIndex[userCursor % usersByIndex.length];
-    userCursor += 1;
+  const endUsers = users.filter((user) => END_USER_TYPES.includes(user.userType));
 
-    let timeline;
+  endUsers.forEach((user, userIndex) => {
+    const vehicleTypes = getEndUserVehicleTypes(user.username, userIndex);
+    const vehiclePlates = Object.fromEntries(
+      vehicleTypes.map((vehicleType, vehicleIndex) => [
+        vehicleType,
+        createPlateNumber(userIndex * 20 + vehicleIndex + 1),
+      ])
+    );
 
-    if (roll < ACTIVE_SESSION_RATIO) {
-      timeline = buildParkingTimeline(slot, user, 'occupied', baseTime, seedCounter);
-    } else if (roll < ACTIVE_SESSION_RATIO + EXPIRED_SESSION_RATIO) {
-      timeline = buildParkingTimeline(slot, user, 'exited', baseTime, seedCounter);
-    } else {
-      const freeSlot = buildFreeSlotState(slot);
-      slotStateDocs.push(freeSlot.slotState);
-      eventDocs.push(freeSlot.event);
+    for (let dayOffset = 0; dayOffset < HISTORY_ENTRIES_PER_USER; dayOffset += 1) {
+      const vehicleType = vehicleTypes[dayOffset % vehicleTypes.length];
+      const slot = slots[(userIndex * HISTORY_ENTRIES_PER_USER + dayOffset) % slots.length];
+      const baseTime = buildHistorySessionStart(dayOffset, userIndex, dayOffset);
+      const plateNumber = vehiclePlates[vehicleType];
+
+      const timeline = buildParkingTimeline(
+        slot,
+        user,
+        'exited',
+        baseTime,
+        seedCounter,
+        vehicleType
+      );
+
+      timeline.session.plateNumber = plateNumber;
+      timeline.session.vehicleType = vehicleType;
+      timeline.events[0].plateNumber = plateNumber;
+      timeline.events[1].plateNumber = plateNumber;
+      timeline.events[2].plateNumber = plateNumber;
+      timeline.events[3].plateNumber = plateNumber;
+
+      sessionDocs.push(timeline.session);
+      eventDocs.push(...timeline.events);
+      slotStateDocsBySlot.set(slot.slotId, timeline.slotState);
       seedCounter += 1;
-      continue;
     }
+  });
 
-    slotStateDocs.push(timeline.slotState);
-    sessionDocs.push(timeline.session);
-    eventDocs.push(...timeline.events);
-    seedCounter += 1;
+  for (const slot of slots) {
+    if (!slotStateDocsBySlot.has(slot.slotId)) {
+      const freeSlot = buildFreeSlotState(slot);
+      slotStateDocsBySlot.set(slot.slotId, freeSlot.slotState);
+      eventDocs.push(freeSlot.event);
+    }
   }
 
   if (sessionDocs.length > 0) {
-    const createdSessions = await ParkingSession.insertMany(sessionDocs, { ordered: true });
-
-    createdSessions.forEach((session) => {
-      const matchingSlot = slotStateDocs.find((slotState) => slotState.slotId === session.slotId);
-      if (matchingSlot && session.status === 'parked') {
-        matchingSlot.currentSessionId = session._id;
-        matchingSlot.plateNumber = session.plateNumber;
-        matchingSlot.status = 'occupied';
-      }
-    });
+    await ParkingSession.insertMany(sessionDocs, { ordered: true });
   }
+
+  const slotStateDocs = [...slotStateDocsBySlot.values()];
 
   if (slotStateDocs.length > 0) {
     await SlotState.insertMany(slotStateDocs, { ordered: true });
@@ -392,94 +448,74 @@ const seedDemoBillingData = async () => {
   await seedDefaultPolicies();
 
   const users = await User.find({}).lean();
-  const userMap = {};
-  for (const u of users) userMap[u.username] = u;
+  const policyDocs = await PricingPolicy.find({ isActive: true }).lean();
+  const policyMap = {};
+  for (const policy of policyDocs) {
+    policyMap[`${policy.userType}-${policy.vehicleType}`] = policy;
+  }
+
+  const endUsers = users.filter((user) => END_USER_TYPES.includes(user.userType));
 
   const adminUser = users.find((u) => u.role === 'admin');
   const adminId = adminUser?._id?.toString() || 'system';
 
-  const learner1 = userMap['2452712'];
-  const learner2 = userMap['learner02'];
-
   const sessions = await ParkingSession.find({ status: 'exited' }).lean();
+  const now = new Date();
+  const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  const dueDate = new Date(periodEnd);
+  dueDate.setDate(dueDate.getDate() + 15);
 
-  if (learner1) {
-    const learner1Sessions = sessions.filter((s) => s.userId === learner1._id.toString()).slice(0, 3);
-    const now = new Date();
-    const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-    const dueDate = new Date(periodEnd);
-    dueDate.setDate(dueDate.getDate() + 15);
+  for (const [index, user] of endUsers.entries()) {
+    const userSessions = sessions
+      .filter((session) => session.userId === user._id.toString())
+      .sort((a, b) => new Date(a.entryTime) - new Date(b.entryTime));
 
-    if (learner1Sessions.length > 0) {
-      const items = learner1Sessions.map((s) => ({
-        sessionId: s._id,
-        plateNumber: s.plateNumber,
-        entryTime: s.entryTime,
-        exitTime: s.exitTime,
-        rate: 2000,
-        amount: 2000,
-        vehicleType: s.vehicleType || 'motorcycle',
-      }));
-      const total1 = items.reduce((sum, i) => sum + i.amount, 0);
+    if (userSessions.length === 0) continue;
 
-      await Invoice.create({
-        userId: learner1._id.toString(),
-        billingPeriodStart: periodStart,
-        billingPeriodEnd: periodEnd,
-        totalAmount: total1,
-        status: 'paid',
-        dueDate,
-        paidAt: new Date(),
-        paidAmount: total1,
-        paidBy: adminId,
-        items,
-      });
-    }
+    const items = userSessions.map((session) => {
+      const policyKey = `${user.userType}-${session.vehicleType || 'motorcycle'}`;
+      const policy = policyMap[policyKey] || policyMap[`${user.userType}-motorcycle`];
+      const amount = calculateSessionFee(session, policy);
+
+      return {
+        sessionId: session._id,
+        plateNumber: session.plateNumber,
+        entryTime: session.entryTime,
+        exitTime: session.exitTime,
+        rate: amount,
+        amount,
+        vehicleType: session.vehicleType || 'motorcycle',
+      };
+    });
+
+    const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+
+    await Invoice.create({
+      userId: user._id.toString(),
+      billingPeriodStart: periodStart,
+      billingPeriodEnd: periodEnd,
+      totalAmount,
+      status: index % 2 === 0 ? 'paid' : 'pending',
+      dueDate,
+      paidAt: index % 2 === 0 ? new Date() : undefined,
+      paidAmount: index % 2 === 0 ? totalAmount : undefined,
+      paidBy: index % 2 === 0 ? adminId : undefined,
+      items,
+    });
   }
 
-  if (learner2) {
-    const learner2Sessions = sessions.filter((s) => s.userId === learner2._id.toString()).slice(0, 2);
-    const now = new Date();
-    const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-    const dueDate = new Date(periodEnd);
-    dueDate.setDate(dueDate.getDate() + 15);
-
-    if (learner2Sessions.length > 0) {
-      const items = learner2Sessions.map((s) => ({
-        sessionId: s._id,
-        plateNumber: s.plateNumber,
-        entryTime: s.entryTime,
-        exitTime: s.exitTime,
-        rate: 2000,
-        amount: 2000,
-        vehicleType: s.vehicleType || 'motorcycle',
-      }));
-      const total2 = items.reduce((sum, i) => sum + i.amount, 0);
-
-      await Invoice.create({
-        userId: learner2._id.toString(),
-        billingPeriodStart: periodStart,
-        billingPeriodEnd: periodEnd,
-        totalAmount: total2,
-        status: 'pending',
-        dueDate,
-        items,
-      });
-    }
-  }
-
-  const visitorSession = sessions.find((s) => s.userId === 'iot-simulator') || sessions[0];
-  if (visitorSession) {
-    const entryTime = new Date(visitorSession.entryTime);
-    const exitTime = visitorSession.exitTime || new Date(entryTime.getTime() + 2 * 60 * 60 * 1000);
+  if (endUsers.length > 0) {
+    const visitorPlate = createPlateNumber(999);
+    const entryTime = new Date(periodEnd);
+    entryTime.setHours(8, 30, 0, 0);
+    const exitTime = new Date(entryTime.getTime() + 2 * 60 * 60 * 1000);
     const durationMs = exitTime.getTime() - entryTime.getTime();
     const durationHours = Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60)));
 
     await VisitorTransaction.create({
-      sessionId: visitorSession._id,
-      plateNumber: visitorSession.plateNumber,
+      sessionId: `visitor-seed-${Date.now()}`,
+      plateNumber: visitorPlate,
       entryTime,
       exitTime,
       durationHours,
@@ -501,7 +537,7 @@ const seedDemoBillingData = async () => {
     action: 'invoice_generated',
     performedBy: adminId,
     performedByRole: 'admin',
-    description: 'Seeded demo invoices for learners 2452712 and learner02',
+    description: 'Seeded demo invoices for end users',
     details: {},
     timestamp: new Date(),
   });
