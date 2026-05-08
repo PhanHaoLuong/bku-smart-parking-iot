@@ -2,17 +2,28 @@ import { create } from 'zustand';
 import { logout } from '../api/authApi';
 import { persist } from 'zustand/middleware';
 
+const normalizeUser = (user) => ({
+  id: user?.id ?? user?.userId ?? null,
+  userId: user?.userId ?? user?.id ?? null,
+  username: user?.username ?? null,
+  role: user?.role ?? null,
+});
+
 export const useAuth = create(persist((set) => ({
   username: null,
+  id: null,
   userId: null,
   role: null,
   isAuthenticated: false,
   handleLogin: (user) =>
-    set({
-      username: user?.username ?? null,
-      userId: user?.id ?? null,
-      role: user?.role ?? null,
-      isAuthenticated: !!user?.id && !!user?.role,
+    set((state) => {
+      const normalizedUser = normalizeUser(user);
+
+      return {
+        ...state,
+        ...normalizedUser,
+        isAuthenticated: !!normalizedUser.id && !!normalizedUser.role,
+      };
     }),
   handleLogout: async () => {
     try {
@@ -20,6 +31,7 @@ export const useAuth = create(persist((set) => ({
     } finally {
       set({
         username: null,
+        id: null,
         userId: null,
         role: null,
         isAuthenticated: false,
@@ -34,19 +46,19 @@ export const useAuth = create(persist((set) => ({
       });
 
       if (!response.ok) {
-        set({ username: null, userId: null, role: null, isAuthenticated: false });
+        set({ username: null, id: null, userId: null, role: null, isAuthenticated: false });
         return;
       }
 
       const user = await response.json();
+      const normalizedUser = normalizeUser(user);
+
       set({
-        username: user?.username ?? null,
-        userId: user?.id ?? null,
-        role: user?.role ?? null,
-        isAuthenticated: !!user?.id && !!user?.role,
+        ...normalizedUser,
+        isAuthenticated: !!normalizedUser.id && !!normalizedUser.role,
       });
     } catch {
-      set({ username: null, userId: null, role: null, isAuthenticated: false });
+      set({ username: null, id: null, userId: null, role: null, isAuthenticated: false });
     }
   },
 }))); 

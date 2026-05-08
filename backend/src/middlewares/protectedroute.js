@@ -1,25 +1,21 @@
-import jsonwebtoken from "jsonwebtoken";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { getAuthTokenFromRequest, verifyAuthToken } from '../utils/authSession.util.js';
 
 export const protectedRoute = (req, res, next) => {
     try {
-        const token = req.cookies.token;
+        const token = getAuthTokenFromRequest(req);
         if (!token) {
             return res.status(401).json({ message: 'Unauthorized' });
-        }   
 
-        const decoded = jsonwebtoken.verify(token, process.env.JWT_SECRET);
-        if (!decoded) {
+        }
+
+        const sessionUser = verifyAuthToken(token);
+        if (!sessionUser) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        const { userId, role, id, sub } = decoded;
-        const normalizedId = userId || id || sub;
-        req.user = { id: normalizedId, role, userId };
+        req.user = sessionUser;
         next();
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
 };

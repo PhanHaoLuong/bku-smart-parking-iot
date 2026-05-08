@@ -1,36 +1,27 @@
-import jwt from 'jsonwebtoken';
+import { getAuthTokenFromRequest, verifyAuthToken } from '../utils/authSession.util.js';
 
 export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    const token = req.cookies && req.cookies.token;
+    const token = getAuthTokenFromRequest(req);
     if (!token) {
       return res.status(401).json({ message: 'Unauthorized — no token provided' });
     }
 
-    let payload;
-    try {
-      payload = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      return res.status(401).json({ message: 'Unauthorized — invalid or expired token' });
-    }
-
-    const userId = payload.userId || payload.id || payload.sub;
-    const role = payload.role;
-
-    if (!userId || !role) {
+    const sessionUser = verifyAuthToken(token);
+    if (!sessionUser) {
       return res.status(401).json({ message: 'Unauthorized — malformed token payload' });
     }
 
-    if (role === 'admin') {
-      req.user = { userId, role };
+    if (sessionUser.role === 'admin') {
+      req.user = sessionUser;
       return next();
     }
 
-    if (!allowedRoles.includes(role)) {
+    if (!allowedRoles.includes(sessionUser.role)) {
       return res.status(403).json({ message: 'Forbidden — insufficient permissions' });
     }
 
-    req.user = { userId, role };
+    req.user = sessionUser;
     next();
   };
 };

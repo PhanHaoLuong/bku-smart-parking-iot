@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 
 import { addUser, findUserById, findUserByUsername, validateUser } from '../utils/user.util.js';
 import { generateToken } from '../utils/auth.util.js';
+import { clearAuthCookie, normalizeSessionUser } from '../utils/authSession.util.js';
 
 // Signup controller
 export const signup = async (req, res) => {
@@ -37,31 +38,34 @@ export const login = async (req, res) => {
   generateToken(res, user._id, user.role);
   res.status(200).json({
     message: 'Login successful',
-    user: { username: user.username, id: user._id, role: user.role },
+    user: { username: user.username, id: user._id, userId: user._id, role: user.role },
   });
 };
 
 // Logout controller
 export const logout = (req, res) => {
-  res.clearCookie('token');
+  clearAuthCookie(res);
   res.status(200).json({ message: 'Logout successful' });
 };
 
 export const getUserInfo = async (req, res) => {
   try {
-    if (!req.user?.userId) {
+    const sessionUser = normalizeSessionUser(req.user);
+
+    if (!sessionUser) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const user = await findUserById(req.user.userId);
+    const user = await findUserById(sessionUser.userId);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     return res.status(200).json({
-      id: req.user.userId,
-      role: req.user.role,
+      id: sessionUser.id,
+      userId: sessionUser.userId,
+      role: sessionUser.role,
       username: user.username,
       fullName: user.fullName,
       email: user.email,
