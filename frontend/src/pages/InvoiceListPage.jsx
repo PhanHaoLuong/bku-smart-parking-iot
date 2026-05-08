@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../stores/authStore';
+import { authedFetch, authedJsonFetch } from '../api/authedFetch';
 
 function InvoiceListPage() {
   const [invoices, setInvoices] = useState([]);
@@ -6,18 +8,15 @@ function InvoiceListPage() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [generating, setGenerating] = useState(false);
-
-  const token = localStorage.getItem('token');
-  const role = token ? token.split('-')[1] : null;
+  const role = useAuth((state) => state.role);
   const isFinance = role === 'finance' || role === 'admin';
 
   const fetchInvoices = async () => {
-    const headers = { Authorization: `Bearer ${token}` };
     try {
       const url = statusFilter
         ? `/apiv1/billing/invoices?status=${statusFilter}`
         : '/apiv1/billing/invoices';
-      const res = await fetch(url, { headers });
+      const res = await authedFetch(url);
       if (!res.ok) throw new Error('Failed to fetch invoices');
       setInvoices(await res.json());
     } catch (err) {
@@ -33,9 +32,8 @@ function InvoiceListPage() {
     if (!window.confirm('Generate invoices for current billing cycle?')) return;
     setGenerating(true);
     try {
-      const res = await fetch('/apiv1/billing/invoices/generate', {
+      const res = await authedJsonFetch('/apiv1/billing/invoices/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ cycleEndDate: new Date().toISOString() }),
       });
       if (!res.ok) throw new Error('Failed to generate invoices');
@@ -52,9 +50,8 @@ function InvoiceListPage() {
   const handleMarkPaid = async (id) => {
     if (!window.confirm('Mark this invoice as paid?')) return;
     try {
-      const res = await fetch(`/apiv1/billing/invoices/${id}/pay`, {
+      const res = await authedJsonFetch(`/apiv1/billing/invoices/${id}/pay`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({}),
       });
       if (!res.ok) throw new Error('Failed to mark paid');

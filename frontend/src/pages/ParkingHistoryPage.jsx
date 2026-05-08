@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import LearnerLayout from '../components/learner/LearnerLayout';
+import { authedFetch } from '../api/authedFetch';
 import '../styles/ParkingHistoryPage.css';
 
 function formatDateTime(value) {
@@ -36,9 +37,7 @@ function ParkingHistoryPage({ role, userId }) {
             ? '/apiv1/parking-history'
             : `/apiv1/parking-history/${userId}`;
 
-        const response = await fetch(endpoint, {
-          credentials: 'include',
-        });
+        const response = await authedFetch(endpoint);
 
         if (!response.ok) {
           throw new Error('Failed to fetch parking history');

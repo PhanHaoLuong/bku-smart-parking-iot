@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import LearnerLayout from '../components/learner/LearnerLayout';
+import { authedFetch } from '../api/authedFetch';
 import '../styles/InfoPage.css';
 
 function InfoItem({ label, value }) {
@@ -22,10 +23,7 @@ function InfoPage() {
         setLoading(true);
         setError('');
 
-        const response = await fetch('/apiv1/auth/user-info', {
-          method: 'GET',
-          credentials: 'include',
-        });
+        const response = await authedFetch('/apiv1/auth/user-info');
 
         if (!response.ok) {
           throw new Error('Failed to fetch user info');

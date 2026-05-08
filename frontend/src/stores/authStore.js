@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { logout } from '../api/authApi';
 import { persist } from 'zustand/middleware';
+import { authedFetch } from '../api/authedFetch';
 
 const normalizeUser = (user) => ({
   id: user?.id ?? user?.userId ?? null,
@@ -40,10 +41,7 @@ export const useAuth = create(persist((set) => ({
   },
   syncFromSession: async () => {
     try {
-      const response = await fetch('/apiv1/auth/user-info', {
-        method: 'GET',
-        credentials: 'include',
-      });
+      const response = await authedFetch('/apiv1/auth/user-info');
 
       if (!response.ok) {
         set({ username: null, id: null, userId: null, role: null, isAuthenticated: false });

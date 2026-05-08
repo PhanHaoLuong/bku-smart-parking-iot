@@ -2,6 +2,7 @@
 //Dashboard page for monitoring real-time statuses
 //Includes: Entry/Exit camera, Exception alerts - queue, Logs, Parking space availability
 import { useEffect, useState } from 'react';
+import { authedFetch } from '../api/authedFetch';
 
 function StaffDashboardPage({}) {
     const [realTimeData, setRealTimeData] = useState(null);
@@ -11,9 +12,7 @@ function StaffDashboardPage({}) {
         // Simulate fetching real-time data
         const fetchData = async () => {
             try {
-                const data = await fetch('/apiv1/monitoring/summary', {
-                    credentials: 'include',
-                });
+                const data = await authedFetch('/apiv1/monitoring/summary');
                 
                 if (!data.ok) {
                     throw new Error('Failed to fetch monitoring data');

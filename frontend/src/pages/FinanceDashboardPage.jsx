@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { authedFetch } from '../api/authedFetch';
 
 function FinanceDashboardPage() {
   const [summary, setSummary] = useState(null);
@@ -9,14 +10,11 @@ function FinanceDashboardPage() {
   const [error, setError] = useState(null);
 
   const fetchData = async () => {
-    const token = localStorage.getItem('token');
-    const headers = { Authorization: `Bearer ${token}` };
-
     try {
       const [summaryRes, outstandingRes, auditRes] = await Promise.all([
-        fetch('/apiv1/billing/dashboard/revenue-summary', { headers }),
-        fetch('/apiv1/billing/invoices/outstanding/list', { headers }),
-        fetch('/apiv1/billing/audit', { headers }),
+        authedFetch('/apiv1/billing/dashboard/revenue-summary'),
+        authedFetch('/apiv1/billing/invoices/outstanding/list'),
+        authedFetch('/apiv1/billing/audit'),
       ]);
 
       if (!summaryRes.ok || !outstandingRes.ok || !auditRes.ok) {

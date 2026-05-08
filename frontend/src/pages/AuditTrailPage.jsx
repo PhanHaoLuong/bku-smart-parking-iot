@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { authedFetch } from '../api/authedFetch';
 
 function AuditTrailPage() {
   const [logs, setLogs] = useState([]);
@@ -8,14 +9,11 @@ function AuditTrailPage() {
   const [expandedRow, setExpandedRow] = useState(null);
 
   const fetchLogs = async () => {
-    const token = localStorage.getItem('token');
     try {
       const url = actionFilter
         ? `/apiv1/billing/audit?action=${actionFilter}`
         : '/apiv1/billing/audit';
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authedFetch(url);
       if (!res.ok) throw new Error('Failed to fetch audit log');
       setLogs(await res.json());
     } catch (err) {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { authedFetch, authedJsonFetch } from '../api/authedFetch';
 
 function PricingConfigPage() {
   const [policies, setPolicies] = useState([]);
@@ -22,11 +23,8 @@ function PricingConfigPage() {
   });
 
   const fetchPolicies = async () => {
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch('/apiv1/billing/policies', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authedFetch('/apiv1/billing/policies');
       if (!res.ok) throw new Error('Failed to fetch policies');
       setPolicies(await res.json());
     } catch (err) {
@@ -76,8 +74,6 @@ function PricingConfigPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    const token = localStorage.getItem('token');
-    const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
     try {
       const body = { ...formData };
@@ -91,12 +87,14 @@ function PricingConfigPage() {
 
       let res;
       if (editingPolicy) {
-        res = await fetch(`/apiv1/billing/policies/${editingPolicy}`, {
-          method: 'PUT', headers, body: JSON.stringify(body),
+        res = await authedJsonFetch(`/apiv1/billing/policies/${editingPolicy}`, {
+          method: 'PUT',
+          body: JSON.stringify(body),
         });
       } else {
-        res = await fetch('/apiv1/billing/policies', {
-          method: 'POST', headers, body: JSON.stringify(body),
+        res = await authedJsonFetch('/apiv1/billing/policies', {
+          method: 'POST',
+          body: JSON.stringify(body),
         });
       }
 
@@ -113,11 +111,9 @@ function PricingConfigPage() {
 
   const handleDeactivate = async (id) => {
     if (!window.confirm('Deactivate this policy?')) return;
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`/apiv1/billing/policies/${id}`, {
+      const res = await authedFetch(`/apiv1/billing/policies/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to deactivate');
       await fetchPolicies();
