@@ -1,46 +1,69 @@
-import { useEffect, useState } from 'react';
-import LearnerLayout from '../components/learner/LearnerLayout';
-import { authedFetch } from '../api/authedFetch';
-import '../styles/InfoPage.css';
+import { useEffect, useMemo, useState } from "react";
+import LearnerLayout from "../components/learner/LearnerLayout";
+import { getUserInfo } from "../api/userApi.js";
+import { getMyParkingHistory } from "../api/parkingApi.js";
+import "../styles/InfoPage.css";
 
 function InfoItem({ label, value }) {
   return (
     <div className="info-item">
       <span>{label}</span>
-      <strong>{value || 'Not available'}</strong>
+      <strong>{value || "Not available"}</strong>
     </div>
   );
 }
 
 function InfoPage() {
   const [userInfo, setUserInfo] = useState(null);
+  const [parkingHistory, setParkingHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let ignore = false;
+
     const fetchUserInfo = async () => {
       try {
         setLoading(true);
-        setError('');
+        setError("");
 
-        const response = await authedFetch('/apiv1/auth/user-info');
+        const userData = await getUserInfo();
+        const historyData = await getMyParkingHistory(
+          userData.userId || userData.id,
+        );
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch user info');
+        if (!ignore) {
+          setUserInfo(userData);
+          setParkingHistory(historyData);
         }
-
-        const userData = await response.json();
-        setUserInfo(userData);
       } catch (fetchError) {
-        console.error('Error fetching user info:', fetchError);
-        setError('Unable to load personal information.');
+        if (!ignore) {
+          console.error("Error fetching user info:", fetchError);
+          setError(
+            fetchError.message || "Unable to load personal information.",
+          );
+        }
       } finally {
-        setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     };
 
     fetchUserInfo();
+
+    return () => {
+      ignore = true;
+    };
   }, []);
+
+  const latestVehicle = useMemo(() => {
+    return (
+      parkingHistory.find((entry) => entry.status === "parked") ||
+      parkingHistory[0] ||
+      null
+    );
+  }, [parkingHistory]);
 
   return (
     <LearnerLayout
@@ -48,21 +71,13 @@ function InfoPage() {
       subtitle="View your learner profile"
     >
       {loading && (
-        <div className="info-state-card">
-          Loading personal information...
-        </div>
+        <div className="info-state-card">Loading personal information...</div>
       )}
 
-      {error && (
-        <div className="info-error-card">
-          {error}
-        </div>
-      )}
+      {error && <div className="info-error-card">{error}</div>}
 
       {!loading && !error && !userInfo && (
-        <div className="info-state-card">
-          No user information available.
-        </div>
+        <div className="info-state-card">No user information available.</div>
       )}
 
       {!loading && !error && userInfo && (
@@ -72,17 +87,17 @@ function InfoPage() {
               <div className="profile-avatar">
                 {userInfo.fullName
                   ? userInfo.fullName.charAt(0).toUpperCase()
-                  : 'U'}
+                  : "U"}
               </div>
 
               <div>
-                <h2>{userInfo.fullName || 'Learner User'}</h2>
-                <p>{userInfo.email || 'No email available'}</p>
+                <h2>{userInfo.fullName || "Learner User"}</h2>
+                <p>{userInfo.email || "No email available"}</p>
               </div>
             </div>
 
             <div className="profile-role-badge">
-              {userInfo.role || 'learner'}
+              {userInfo.role || "learner"}
             </div>
           </section>
 
@@ -97,30 +112,30 @@ function InfoPage() {
               <InfoItem label="Full Name" value={userInfo.fullName} />
               <InfoItem label="Email" value={userInfo.email} />
               <InfoItem label="Role" value={userInfo.role} />
+              <InfoItem label="User Type" value={userInfo.userType} />
             </div>
           </section>
 
           <section className="info-card">
             <div className="info-card-header">
               <h2>Vehicle Information</h2>
-              <p>Your registered vehicle information.</p>
+              <p>Inferred from your latest parking sessions in MongoDB.</p>
             </div>
 
             <div className="info-list">
               <InfoItem
                 label="Plate Number"
-                value={userInfo.plateNumber || '50H-10962'}
+                value={latestVehicle?.plateNumber}
               />
 
               <InfoItem
                 label="Vehicle Type"
-                value={userInfo.vehicleType || 'Motorbike'}
+                value={latestVehicle?.vehicleType}
               />
 
-              <InfoItem
-                label="Registration Status"
-                value={userInfo.vehicleStatus || 'Registered'}
-              />
+              <InfoItem label="Last Slot" value={latestVehicle?.slotId} />
+
+              <InfoItem label="Parking Lot" value={latestVehicle?.parkingLot} />
             </div>
           </section>
 
@@ -133,12 +148,16 @@ function InfoPage() {
             <div className="status-panel">
               <div>
                 <span className="status-dot"></span>
-                <strong>Active account</strong>
+                <strong>
+                  {userInfo.cardActive === false
+                    ? "Inactive account"
+                    : "Active account"}
+                </strong>
               </div>
 
               <p>
-                Your account is currently active and allowed to access learner
-                parking services.
+                Your account data is loaded from the users collection. Parking
+                vehicle data is loaded from the parkingsessions collection.
               </p>
             </div>
           </section>

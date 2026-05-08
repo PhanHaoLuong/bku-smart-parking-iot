@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import LoginForm from '../components/auth/LoginForm';
-import { login } from '../api/authApi';
-import '../styles/LoginPage.css';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import LoginForm from "../components/auth/LoginForm";
+import { login } from "../api/authApi";
+import "../styles/LoginPage.css";
 
 function LoginPage({ onLogin }) {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   async function handleLogin({ username, password }) {
-    setError('');
+    setError("");
 
     if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password.');
+      setError("Please enter both username and password.");
       return;
     }
 
@@ -27,9 +27,15 @@ function LoginPage({ onLogin }) {
         onLogin(data.user);
       }
 
-      navigate('/dashboard');
+      const userRole = data.user?.role;
+      const isStaffRole =
+        userRole === "admin" ||
+        userRole === "operator" ||
+        userRole === "finance";
+
+      navigate(isStaffRole ? "/staff-dashboard" : "/dashboard");
     } catch (err) {
-      setError(err.message || 'Login failed.');
+      setError(err.message || "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -43,11 +49,7 @@ function LoginPage({ onLogin }) {
           <p>Login to manage your parking account</p>
         </div>
 
-        <LoginForm
-          onSubmit={handleLogin}
-          loading={loading}
-          error={error}
-        />
+        <LoginForm onSubmit={handleLogin} loading={loading} error={error} />
       </div>
     </div>
   );
