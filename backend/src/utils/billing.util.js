@@ -13,7 +13,7 @@ export const getPolicyById = async (id) => PricingPolicy.findById(id).lean();
 
 export const createPolicy = async (data, userId) => {
   const policy = await PricingPolicy.create({ ...data, createdBy: userId, updatedBy: userId });
-  await logAudit({
+  await safeLogAudit({
     action: 'pricing_created',
     performedBy: userId,
     description: `Created pricing policy for ${data.userType}/${data.vehicleType} (${data.pricingMode})`,
@@ -32,7 +32,7 @@ export const updatePolicy = async (id, data, userId) => {
     { new: true }
   ).lean();
 
-  await logAudit({
+  await safeLogAudit({
     action: 'pricing_updated',
     performedBy: userId,
     description: `Updated pricing policy for ${updated.userType}/${updated.vehicleType}`,
@@ -48,7 +48,7 @@ export const deactivatePolicy = async (id, userId) => {
 
   await PricingPolicy.findByIdAndUpdate(id, { isActive: false, updatedBy: userId });
 
-  await logAudit({
+  await safeLogAudit({
     action: 'pricing_deactivated',
     performedBy: userId,
     description: `Deactivated pricing policy for ${policy.userType}/${policy.vehicleType}`,
@@ -175,7 +175,7 @@ export const generateInvoices = async (cycleEndDate, performedBy) => {
 
     generated.push(invoice._id);
 
-    await logAudit({
+    await safeLogAudit({
       action: 'invoice_generated',
       performedBy,
       description: `Generated invoice for ${learner.fullName || learner.username}: ${totalAmount.toLocaleString()} VND (${items.length} sessions)`,
@@ -231,7 +231,7 @@ export const markInvoicePaid = async (invoiceId, paidAmount, paidBy) => {
   invoice.paidBy = paidBy;
   await invoice.save();
 
-  await logAudit({
+  await safeLogAudit({
     action: 'invoice_paid',
     performedBy: paidBy,
     description: `Invoice ${invoiceId} marked paid: ${(paidAmount ?? invoice.totalAmount).toLocaleString()} VND`,
@@ -273,7 +273,7 @@ export const markVisitorPaid = async (transactionId, paidBy) => {
   txn.paidBy = paidBy;
   await txn.save();
 
-  await logAudit({
+  await safeLogAudit({
     action: 'visitor_paid',
     performedBy: paidBy,
     description: `Visitor payment recorded for ${txn.plateNumber}: ${txn.totalAmount.toLocaleString()} VND`,
@@ -353,6 +353,14 @@ const logAudit = async ({ action, performedBy, description, details }) => {
     details,
     timestamp: new Date(),
   });
+};
+
+const safeLogAudit = async (payload) => {
+  try {
+    await logAudit(payload);
+  } catch (error) {
+    console.error('Audit log write failed:', error);
+  }
 };
 
 // ─── Outstanding Learners (for finance dashboard) ──────────────────────
