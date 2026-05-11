@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 function DashboardPage({ role }) {
     const isFinance = role === 'finance';
+    const isOperator = role === 'operator';
 
     return(
         <div className="dashboard-page">
@@ -12,6 +13,12 @@ function DashboardPage({ role }) {
             <Link key="/info" to="/info">
                 Personal Info
             </Link>
+
+            {isOperator && (
+                <Link key="/staff-dashboard" to="/staff-dashboard">
+                    Staff Dashboard
+                </Link>
+            )}
 
             {isFinance && (
                 <>

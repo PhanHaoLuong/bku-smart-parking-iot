@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../stores/authStore';
 import { authedFetch, authedJsonFetch } from '../api/authedFetch';
 import AppLayout from '../components/layout/AppLayout';
@@ -10,11 +11,15 @@ function InvoiceListPage() {
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [generating, setGenerating] = useState(false);
-  const role = useAuth((state) => state.role);
+  const { role, username } = useAuth();
   const isFinance = role === 'finance';
+  const isEndUser = role === 'learner' || role === 'faculty';
 
   const fetchInvoices = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       const url = statusFilter
         ? `/apiv1/billing/invoices?status=${statusFilter}`
         : '/apiv1/billing/invoices';
@@ -49,12 +54,17 @@ function InvoiceListPage() {
     }
   };
 
-  const handleMarkPaid = async (id) => {
-    if (!window.confirm('Mark this invoice as paid?')) return;
+  const handleSettleInvoice = async (invoice) => {
+    const confirmMessage = isFinance
+      ? 'Mark this invoice as paid?'
+      : `Pay ${formatVND(invoice.totalAmount)} now?`;
+
+    if (!window.confirm(confirmMessage)) return;
+
     try {
-      const res = await authedJsonFetch(`/apiv1/billing/invoices/${id}/pay`, {
+      const res = await authedJsonFetch(`/apiv1/billing/invoices/${invoice._id}/pay`, {
         method: 'PUT',
-        body: JSON.stringify({}),
+        body: JSON.stringify({ paidAmount: invoice.totalAmount }),
       });
       if (!res.ok) throw new Error('Failed to mark paid');
       await fetchInvoices();
@@ -64,13 +74,21 @@ function InvoiceListPage() {
   };
 
   const formatVND = (n) => (n || 0).toLocaleString() + ' VND';
+  const totalBilled = invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+  const outstandingInvoices = invoices.filter((inv) => ['pending', 'overdue'].includes(inv.status));
+  const outstandingAmount = outstandingInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0);
+  const paidInvoices = invoices.filter((inv) => inv.status === 'paid');
+  const paidAmount = paidInvoices.reduce((sum, inv) => sum + (inv.paidAmount || inv.totalAmount || 0), 0);
 
   if (loading) return <AppLayout title="Invoices"><div className="loading">Loading invoices...</div></AppLayout>;
 
   return (
     <AppLayout title="Invoices" subtitle="Manage invoices">
       <div className="page-header">
-        <h1>Invoices</h1>
+        <div>
+          <h1>{isFinance ? 'Invoices' : 'My Billing'}</h1>
+          <p>{isFinance ? 'Manage billing cycles and settle invoices.' : 'Your bill is calculated from completed parking sessions in parking history.'}</p>
+        </div>
         <div className="header-actions">
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All Statuses</option>
@@ -86,7 +104,36 @@ function InvoiceListPage() {
         </div>
       </div>
 
+      <div className="dashboard-cards">
+        <div className="dashboard-card">
+          <h3>{isFinance ? 'Total Billed' : 'Current Bill'}</h3>
+          <p className="card-value">{formatVND(totalBilled)}</p>
+        </div>
+        <div className="dashboard-card">
+          <h3>{isFinance ? 'Open Invoices' : 'Outstanding Balance'}</h3>
+          <p className="card-value warning">{formatVND(outstandingAmount)}</p>
+        </div>
+        <div className="dashboard-card">
+          <h3>{isFinance ? 'Settled Invoices' : 'Paid Amount'}</h3>
+          <p className="card-value">{formatVND(paidAmount)}</p>
+        </div>
+      </div>
+
       {error && <p className="error">{error}</p>}
+
+      {isEndUser && (
+        <div className="card">
+          <h3>How payment works</h3>
+          <p>
+            {username ? `${username}, your bill is generated ` : 'Your bill is generated '}
+            from completed parking sessions and shows the exact session breakdown.
+            Use the billing page to review the amount due, then pay the open invoice directly.
+          </p>
+          <p>
+            <Link to="/parking-history">View parking history</Link> to compare the sessions that fed the bill.
+          </p>
+        </div>
+      )}
 
       {invoices.length === 0 ? (
         <p className="empty-state">No invoices found</p>
@@ -99,7 +146,7 @@ function InvoiceListPage() {
               <th>Status</th>
               <th>Due Date</th>
               <th>Sessions</th>
-              {isFinance && <th>Actions</th>}
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -110,13 +157,13 @@ function InvoiceListPage() {
                 <td><span className={`badge badge-${inv.status}`}>{inv.status}</span></td>
                 <td>{new Date(inv.dueDate).toLocaleDateString()}</td>
                 <td>{(inv.items || []).length}</td>
-                {isFinance && (
-                  <td>
-                    {inv.status === 'pending' && (
-                      <button className="btn-small" onClick={() => handleMarkPaid(inv._id)}>Mark Paid</button>
-                    )}
-                  </td>
-                )}
+                <td>
+                  {(inv.status === 'pending' || inv.status === 'overdue') && (
+                    <button className="btn-small" onClick={() => handleSettleInvoice(inv)}>
+                      {isFinance ? 'Mark Paid' : 'Pay Now'}
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -125,7 +172,7 @@ function InvoiceListPage() {
 
       {invoices.length > 0 && (
         <div className="invoice-details">
-          <h3>Invoice Items</h3>
+          <h3>{isFinance ? 'Invoice Items' : 'How Your Bill Was Calculated'}</h3>
           {invoices.filter((inv) => (inv.items || []).length > 0).slice(0, 3).map((inv) => (
             <div key={inv._id} className="card">
               <h4>Invoice #{inv._id.slice(-6)} ({inv.status})</h4>

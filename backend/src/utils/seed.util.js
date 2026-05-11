@@ -8,6 +8,7 @@ import PricingPolicy from '../models/pricingpolicy.model.js';
 import Invoice from '../models/invoice.model.js';
 import VisitorTransaction from '../models/visitortransaction.model.js';
 import AuditLog from '../models/auditlog.model.js';
+import { calculateSessionFee } from './billing.util.js';
 
 const LOTS = [
   { lotId: 'lot-1', slotPrefix: 'L1' },
@@ -15,9 +16,17 @@ const LOTS = [
 ];
 
 const SLOTS_PER_LOT = 20;
-const HISTORY_DAYS = 10;
-const ACTIVE_SESSION_RATIO = 0.45;
-const EXPIRED_SESSION_RATIO = 0.3;
+const HISTORY_DAYS = 5;
+const END_USER_TYPES = ['learner', 'faculty'];
+const HISTORY_ENTRIES_PER_USER = 1;
+
+const END_USER_VEHICLE_TYPES = {
+  2452712: ['motorcycle'],
+  learner02: ['motorcycle', 'bicycle'],
+  learner03: ['car'],
+  faculty01: ['car'],
+  faculty02: ['motorcycle', 'car'],
+};
 
 const demoUsers = [
   {
@@ -31,19 +40,30 @@ const demoUsers = [
     email: 'a.phanvan@hcmut.edu.vn',
   },
   {
-    username: 'fstaff',
+    username: 'learner02',
     password: String(bcrypt.hashSync('123', 10)),
-    role: 'operator',
-    userType: 'staff',
+    role: 'learner',
+    userType: 'learner',
     vehicleType: 'motorcycle',
     cardActive: true,
-    fullName: 'Facility Staff',
-    email: 'staff@hcmut.edu.vn',
+    fullName: 'Learner Two',
+    email: 'learner02@hcmut.edu.vn',
+  },
+  {
+    username: 'learner03',
+    password: String(bcrypt.hashSync('123', 10)),
+    role: 'learner',
+    userType: 'learner',
+    vehicleType: 'car',
+    cardActive: true,
+    fullName: 'Learner Three',
+    email: 'learner03@hcmut.edu.vn',
   },
   {
     username: 'parkingop',
     password: String(bcrypt.hashSync('123', 10)),
     role: 'operator',
+    userType: 'staff',
     vehicleType: 'motorcycle',
     cardActive: true,
     fullName: 'Parking Operator',
@@ -56,18 +76,18 @@ const demoUsers = [
     userType: 'faculty',
     vehicleType: 'car',
     cardActive: true,
-    fullName: 'Faculty Member',
+    fullName: 'Faculty Member One',
     email: 'faculty01@hcmut.edu.vn',
   },
   {
-    username: 'learner02',
+    username: 'faculty02',
     password: String(bcrypt.hashSync('123', 10)),
-    role: 'learner',
-    userType: 'learner',
+    role: 'faculty',
+    userType: 'faculty',
     vehicleType: 'motorcycle',
     cardActive: true,
-    fullName: 'Learner Two',
-    email: 'learner02@hcmut.edu.vn',
+    fullName: 'Faculty Member Two',
+    email: 'faculty02@hcmut.edu.vn',
   },
   {
     username: 'finance01',
@@ -116,6 +136,7 @@ function buildSlots() {
       slotPrefix,
       slotNumber: index + 1,
       slotId: `${slotPrefix}-${String(index + 1).padStart(2, '0')}`,
+      iotId: `iot-${lotId}-${slotPrefix}${String(index + 1).padStart(2, '0')}`,
     }))
   );
 }
@@ -126,11 +147,23 @@ function randomHistoryBaseTime() {
   return new Date(now - randomInt(1, windowMs));
 }
 
+function buildHistorySessionStart(dayOffset, userIndex, sessionIndex) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (HISTORY_DAYS - 1 - dayOffset));
+  start.setHours(7 + (userIndex % 5), 10 + (sessionIndex * 11) % 50, 0, 0);
+  return start;
+}
+
+function getEndUserVehicleTypes(username, userIndex) {
+  return END_USER_VEHICLE_TYPES[username] || (userIndex % 2 === 0 ? ['motorcycle'] : ['car']);
+}
+
 function makeEventId(prefix, slotId, suffix) {
   return `${prefix}-${slotId}-${suffix}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function buildParkingTimeline(slot, user, state, baseTime, eventSeed) {
+function buildParkingTimeline(slot, user, state, baseTime, eventSeed, vehicleType) {
   const plateNumber = createPlateNumber(eventSeed);
   const entryTime = new Date(baseTime.getTime());
   entryTime.setMinutes(entryTime.getMinutes() + randomInt(5, 45));
@@ -165,203 +198,129 @@ function buildParkingTimeline(slot, user, state, baseTime, eventSeed) {
   };
 
   const vehicleTypes = ['motorcycle', 'bicycle', 'car'];
-  const assignedVehicleType = vehicleTypes[eventSeed % 3];
+  const assignedVehicleType = vehicleType || vehicleTypes[eventSeed % 3];
 
   if (state === 'occupied') {
     return {
       session: {
-        userId: user._id,
+        userId: user._id.toString(),
+        slotId: slot.slotId,
+        parkingLot: slot.lotId,
         plateNumber,
+        vehicleType: assignedVehicleType,
         entryTime,
         status: 'parked',
-        slotId: slot.slotId,
-        vehicleType: assignedVehicleType,
-        parkingLot: slot.lotId,
-      },
-      slotState: {
-        slotId: slot.slotId,
-        iotId: slot.lotId,
-        status: 'occupied',
-        plateNumber,
-        currentSessionId: null,
-        lastEventId: heartbeatEvent.eventId,
-        lastEventType: heartbeatEvent.eventType,
-        lastChangeTime: heartbeatEvent.timestamp,
       },
       events: [entryEvent, occupiedEvent, heartbeatEvent],
     };
-  }
-
-  const exitTime = new Date(entryTime.getTime() + randomInt(20, 240) * 60 * 1000);
-  const slotFreedTime = new Date(exitTime.getTime() + randomInt(20, 90) * 1000);
-  const durationSeconds = Math.max(0, Math.floor((exitTime.getTime() - entryTime.getTime()) / 1000));
-  const exitEvent = {
-    eventId: makeEventId('evt', slot.slotId, 'exit'),
-    eventType: 'vehicle_exit',
-    deviceId: `${slot.lotId}-gate-out`,
-    lotId: slot.lotId,
-    slotId: slot.slotId,
-    plateNumber,
-    timestamp: exitTime,
-  };
-  const freedEvent = {
-    eventId: makeEventId('evt', slot.slotId, 'slot-freed'),
-    eventType: 'slot_freed',
-    deviceId: `${slot.lotId}-slot-${slot.slotId}`,
-    lotId: slot.lotId,
-    slotId: slot.slotId,
-    timestamp: slotFreedTime,
-  };
-
-  return {
-    session: {
-      userId: user._id,
+  } else if (state === 'exited') {
+    const exitTime = new Date(heartbeatTime.getTime() + randomInt(15, 240) * 60 * 1000);
+    const exitEvent = {
+      eventId: makeEventId('evt', slot.slotId, 'exit'),
+      eventType: 'vehicle_exit',
+      deviceId: `${slot.lotId}-gate-out`,
+      lotId: slot.lotId,
+      slotId: slot.slotId,
       plateNumber,
-      entryTime,
-      exitTime,
-      status: 'exited',
+      timestamp: exitTime,
+    };
+    const slotFreeEvent = {
+      eventId: makeEventId('evt', slot.slotId, 'slot-free'),
+      eventType: 'slot_freed',
+      deviceId: `${slot.lotId}-sensor-${slot.slotId}`,
+      lotId: slot.lotId,
       slotId: slot.slotId,
-      duration: durationSeconds,
-      vehicleType: assignedVehicleType,
-      parkingLot: slot.lotId,
-    },
-    slotState: {
-      slotId: slot.slotId,
-      iotId: slot.lotId,
-      status: 'free',
-      plateNumber: null,
-      currentSessionId: null,
-      lastEventId: freedEvent.eventId,
-      lastEventType: freedEvent.eventType,
-      lastChangeTime: freedEvent.timestamp,
-    },
-    events: [entryEvent, occupiedEvent, exitEvent, freedEvent],
-  };
+      timestamp: new Date(exitTime.getTime() + 60000),
+    };
+    return {
+      session: {
+        userId: user._id.toString(),
+        slotId: slot.slotId,
+        parkingLot: slot.lotId,
+        plateNumber,
+        vehicleType: assignedVehicleType,
+        entryTime,
+        exitTime,
+        status: 'exited',
+        fee: calculateSessionFee(entryTime, exitTime, assignedVehicleType),
+      },
+      events: [entryEvent, occupiedEvent, exitEvent, slotFreeEvent],
+    };
+  }
+  return null;
 }
 
-function buildFreeSlotState(slot) {
-  const heartbeatEvent = buildHeartbeatEvent(slot);
-
-  return {
-    slotState: {
-      slotId: slot.slotId,
-      iotId: slot.lotId,
-      status: 'free',
-      plateNumber: null,
-      currentSessionId: null,
-      lastEventId: heartbeatEvent.eventId,
-      lastEventType: heartbeatEvent.eventType,
-      lastChangeTime: heartbeatEvent.timestamp,
-    },
-    event: heartbeatEvent,
-  };
-}
-
-function buildHeartbeatEvent(slot) {
-  return {
-    eventId: makeEventId('evt', slot.slotId, 'heartbeat'),
-    eventType: 'heartbeat',
-    deviceId: `${slot.lotId}-sensor-${slot.slotId}`,
-    lotId: slot.lotId,
-    slotId: slot.slotId,
-    timestamp: randomHistoryBaseTime(),
-  };
-}
-
-export const seedDemoUsers = async () => {
-  await User.deleteMany({});
-  const insertedUsers = await User.insertMany(demoUsers, { ordered: true });
-
-  return insertedUsers.map((user) => ({
-    _id: user._id,
-    username: user.username,
-  }));
-};
-
-export const seedDemoParkingInfrastructure = async () => {
+const seedDemoParkingInfrastructure = async () => {
   await Promise.all([
     Event.deleteMany({}),
     SlotState.deleteMany({}),
     ParkingSession.deleteMany({}),
+    User.deleteMany({}),
   ]);
 
-  const users = await seedDemoUsers();
-  const usersByIndex = shuffle(users);
+  await User.create(demoUsers);
+
   const slots = buildSlots();
+  await SlotState.create(slots);
 
-  const slotStateDocs = [];
-  const sessionDocs = [];
-  const eventDocs = [];
+  const users = await User.find({}).lean();
+  const endUsers = users.filter((u) => END_USER_TYPES.includes(u.userType));
 
-  let userCursor = 0;
-  let seedCounter = 1;
+  const endUsersWithVehicleTypes = endUsers.map((u, i) => ({
+    user: u,
+    vehicleTypes: getEndUserVehicleTypes(u.username, i),
+  }));
 
-  for (const slot of slots) {
-    const baseTime = randomHistoryBaseTime();
-    const roll = Math.random();
-    const user = usersByIndex[userCursor % usersByIndex.length];
-    userCursor += 1;
+  const allEvents = [];
+  const allSessions = [];
 
-    let timeline;
+  for (let dayOffset = 0; dayOffset < HISTORY_DAYS; dayOffset++) {
+    const shuffledUsers = shuffle(endUsersWithVehicleTypes);
 
-    if (roll < ACTIVE_SESSION_RATIO) {
-      timeline = buildParkingTimeline(slot, user, 'occupied', baseTime, seedCounter);
-    } else if (roll < ACTIVE_SESSION_RATIO + EXPIRED_SESSION_RATIO) {
-      timeline = buildParkingTimeline(slot, user, 'exited', baseTime, seedCounter);
-    } else {
-      const freeSlot = buildFreeSlotState(slot);
-      slotStateDocs.push(freeSlot.slotState);
-      eventDocs.push(freeSlot.event);
-      seedCounter += 1;
-      continue;
-    }
+    for (let userIndex = 0; userIndex < shuffledUsers.length; userIndex++) {
+      const { user, vehicleTypes } = shuffledUsers[userIndex];
 
-    slotStateDocs.push(timeline.slotState);
-    sessionDocs.push(timeline.session);
-    eventDocs.push(...timeline.events);
-    seedCounter += 1;
-  }
+      for (let sessionIndex = 0; sessionIndex < HISTORY_ENTRIES_PER_USER; sessionIndex++) {
+        const baseTime = buildHistorySessionStart(dayOffset, userIndex, sessionIndex);
+        const slot = slots[randomInt(0, slots.length - 1)];
+        const state = sessionIndex % 3 === 0 ? 'occupied' : 'exited';
 
-  if (sessionDocs.length > 0) {
-    const createdSessions = await ParkingSession.insertMany(sessionDocs, { ordered: true });
+        const timeline = buildParkingTimeline(
+          slot,
+          user,
+          state,
+          baseTime,
+          userIndex * HISTORY_ENTRIES_PER_USER + sessionIndex,
+          vehicleTypes[sessionIndex % vehicleTypes.length]
+        );
 
-    createdSessions.forEach((session) => {
-      const matchingSlot = slotStateDocs.find((slotState) => slotState.slotId === session.slotId);
-      if (matchingSlot && session.status === 'parked') {
-        matchingSlot.currentSessionId = session._id;
-        matchingSlot.plateNumber = session.plateNumber;
-        matchingSlot.status = 'occupied';
+        if (!timeline) continue;
+        allEvents.push(...timeline.events);
+        allSessions.push(timeline.session);
       }
-    });
+    }
   }
 
-  if (slotStateDocs.length > 0) {
-    await SlotState.insertMany(slotStateDocs, { ordered: true });
-  }
+  await Promise.all([
+    Event.insertMany(allEvents),
+    ParkingSession.insertMany(allSessions),
+  ]);
 
-  if (eventDocs.length > 0) {
-    await Event.insertMany(eventDocs, { ordered: true });
-  }
-
-  return {
-    users: users.length,
-    slots: slotStateDocs.length,
-    sessions: sessionDocs.length,
-    events: eventDocs.length,
-  };
+  return { users: users.length, slots: slots.length, sessions: allSessions.length };
 };
 
+// ─── Billing ────────────────────────────────────────────────────────────────
+
 const defaultPolicies = [
-  { userType: 'learner', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 2000, eveningRate: 3000, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'learner', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 1000, eveningRate: 1000, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'learner', vehicleType: 'car', pricingMode: 'per-session', daytimeRate: 5000, eveningRate: 7000, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'faculty', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 2000, eveningRate: 3000, discountPercent: 50, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'faculty', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 0, eveningRate: 0, isFree: true, discountPercent: 0, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'faculty', vehicleType: 'car', pricingMode: 'per-session', daytimeRate: 5000, eveningRate: 7000, discountPercent: 30, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'staff', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 2000, eveningRate: 3000, discountPercent: 20, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'staff', vehicleType: 'car', pricingMode: 'per-session', daytimeRate: 5000, eveningRate: 7000, discountPercent: 10, billingCycle: 'monthly', billingCycleDay: 1 },
-  { userType: 'visitor', vehicleType: 'motorcycle', pricingMode: 'per-hour', firstHourRate: 5000, subsequentHourlyRate: 2000 },
-  { userType: 'visitor', vehicleType: 'bicycle', pricingMode: 'per-hour', firstHourRate: 2000, subsequentHourlyRate: 1000 },
+  { userType: 'learner', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 10000 },
+  { userType: 'learner', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 5000 },
+  { userType: 'learner', vehicleType: 'car', pricingMode: 'per-hour', firstHourRate: 20000, subsequentHourlyRate: 10000 },
+  { userType: 'faculty', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 15000 },
+  { userType: 'faculty', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 5000 },
+  { userType: 'faculty', vehicleType: 'car', pricingMode: 'per-hour', firstHourRate: 30000, subsequentHourlyRate: 15000 },
+  { userType: 'staff', vehicleType: 'motorcycle', pricingMode: 'per-session', daytimeRate: 15000 },
+  { userType: 'staff', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 5000 },
+  { userType: 'staff', vehicleType: 'car', pricingMode: 'per-hour', firstHourRate: 30000, subsequentHourlyRate: 15000 },
   { userType: 'visitor', vehicleType: 'car', pricingMode: 'per-hour', firstHourRate: 10000, subsequentHourlyRate: 5000 },
 ];
 
@@ -414,22 +373,17 @@ const seedDemoBillingData = async () => {
         plateNumber: s.plateNumber,
         entryTime: s.entryTime,
         exitTime: s.exitTime,
-        rate: 2000,
-        amount: 2000,
-        vehicleType: s.vehicleType || 'motorcycle',
+        fee: s.fee,
       }));
-      const total1 = items.reduce((sum, i) => sum + i.amount, 0);
+      const total1 = items.reduce((sum, i) => sum + (Number(i.fee) || 0), 0);
 
       await Invoice.create({
         userId: learner1._id.toString(),
         billingPeriodStart: periodStart,
         billingPeriodEnd: periodEnd,
-        totalAmount: total1,
-        status: 'paid',
+        totalAmount: Number(total1) || 0,
+        status: 'pending',
         dueDate,
-        paidAt: new Date(),
-        paidAmount: total1,
-        paidBy: operatorId,
         items,
       });
     }
@@ -449,39 +403,36 @@ const seedDemoBillingData = async () => {
         plateNumber: s.plateNumber,
         entryTime: s.entryTime,
         exitTime: s.exitTime,
-        rate: 2000,
-        amount: 2000,
-        vehicleType: s.vehicleType || 'motorcycle',
+        fee: s.fee,
       }));
-      const total2 = items.reduce((sum, i) => sum + i.amount, 0);
+      const total2 = items.reduce((sum, i) => sum + (Number(i.fee) || 0), 0);
 
       await Invoice.create({
         userId: learner2._id.toString(),
         billingPeriodStart: periodStart,
         billingPeriodEnd: periodEnd,
-        totalAmount: total2,
-        status: 'pending',
+        totalAmount: Number(total2) || 0,
+        status: 'paid',
         dueDate,
+        paidAt: new Date(),
+        paidAmount: Number(total2) || 0,
+        paidBy: operatorId,
         items,
       });
     }
   }
 
-  const visitorSession = sessions.find((s) => s.userId === 'iot-simulator') || sessions[0];
-  if (visitorSession) {
-    const entryTime = new Date(visitorSession.entryTime);
-    const exitTime = visitorSession.exitTime || new Date(entryTime.getTime() + 2 * 60 * 60 * 1000);
-    const durationMs = exitTime.getTime() - entryTime.getTime();
-    const durationHours = Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60)));
-
+  const visitors = ['59A-12345', '51C-67890', '50H-11111'];
+  for (const plate of visitors) {
+    const hours = randomInt(1, 5);
     await VisitorTransaction.create({
-      sessionId: visitorSession._id,
-      plateNumber: visitorSession.plateNumber,
-      entryTime,
-      exitTime,
-      durationHours,
-      totalAmount: 5000 + (durationHours - 1) * 2000,
-      status: 'pending',
+      sessionId: `visitor-${plate}`,
+      plateNumber: plate,
+      entryTime: new Date(Date.now() - hours * 24 * 60 * 60 * 1000),
+      exitTime: new Date(),
+      durationHours: hours,
+      totalAmount: hours * 10000,
+      status: randomInt(0, 1) ? 'paid' : 'pending',
     });
   }
 

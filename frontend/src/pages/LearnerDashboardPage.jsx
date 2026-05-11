@@ -4,7 +4,7 @@ import { useAuth } from '../stores/authStore';
 import AppLayout from '../components/layout/AppLayout';
 import { authedFetch } from '../api/authedFetch';
 import '../styles/AppLayout.css';
-import './LearnerDashboard.css';
+import '../styles/LearnerDashboard.css';
 
 function LearnerDashboardPage() {
   const [stats, setStats] = useState(null);

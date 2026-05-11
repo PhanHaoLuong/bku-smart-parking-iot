@@ -69,11 +69,31 @@ export const getApplicablePolicy = async (userType, vehicleType) => {
   return policy;
 };
 
-export const calculateSessionFee = (session, policy) => {
+export const calculateSessionFee = (sessionOrEntryTime, policyOrExitTime, vehicleType) => {
+  // Handle legacy seed signature: (entryTime, exitTime, vehicleType)
+  if (sessionOrEntryTime instanceof Date || typeof sessionOrEntryTime === 'string' || typeof sessionOrEntryTime === 'number') {
+    const entryTime = sessionOrEntryTime;
+    const exitTime = policyOrExitTime;
+    const vehicle = vehicleType;
+
+    if (!exitTime) return 0;
+
+    const durationMs = new Date(exitTime).getTime() - new Date(entryTime).getTime();
+    const hours = Math.max(1, Math.ceil(durationMs / (1000 * 60 * 60)));
+
+    const baseRates = { motorcycle: 10000, bicycle: 5000, car: 20000 };
+    return (baseRates[vehicle] || 10000) * hours;
+  }
+
+  // Proper signature: (session, policy)
+  const session = sessionOrEntryTime;
+  const policy = policyOrExitTime;
+
   if (!policy) return 0;
   if (policy.isFree) return 0;
 
-  const entryHour = new Date(session.entryTime).getHours();
+  const entryTime = session.entryTime;
+  const entryHour = new Date(entryTime).getHours();
 
   let baseRate;
   if (entryHour >= 6 && entryHour < 18) {
@@ -147,7 +167,8 @@ export const generateInvoices = async (cycleEndDate, performedBy) => {
     let totalAmount = 0;
 
     for (const session of sessions) {
-      const amount = calculateSessionFee(session, policy);
+      // Use pre-calculated fee from session, or fallback to calculation
+      const amount = session.fee || calculateSessionFee(session, policy) || 0;
       items.push({
         sessionId: session._id,
         plateNumber: session.plateNumber,

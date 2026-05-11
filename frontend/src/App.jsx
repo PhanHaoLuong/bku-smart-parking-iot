@@ -61,8 +61,10 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            {isFinance ? (
+            {role === 'finance' ? (
               <Navigate to="/finance-dashboard" replace />
+            ) : role === 'operator' ? (
+              <Navigate to="/staff-dashboard" replace />
             ) : (
               <LearnerDashboardPage role={role} userId={userId} />
             )}
@@ -70,6 +72,7 @@ function AppRoutes() {
         }
       />
       <Route path="/parking-history" element={<ProtectedRoute><ParkingHistoryPage role={role} userId={userId} /></ProtectedRoute>} />
+      <Route path="/billing" element={<ProtectedRoute><InvoiceListPage /></ProtectedRoute>} />
       <Route path="/info" element={<ProtectedRoute><InfoPage /></ProtectedRoute>} />
       <Route path="/staff-dashboard" element={<ProtectedRoute><StaffDashboardPage /></ProtectedRoute>} />
 

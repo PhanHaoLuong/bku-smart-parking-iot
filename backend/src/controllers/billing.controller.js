@@ -100,7 +100,7 @@ export const handleGetInvoiceById = async (req, res) => {
     const invoice = await getInvoiceById(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
 
-    if (req.user.role !== 'finance' && invoice.userId !== req.user.id) {
+    if (req.user.role !== 'finance' && String(invoice.userId) !== String(req.user.id)) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
@@ -125,8 +125,16 @@ export const handleGenerateInvoices = async (req, res) => {
 export const handleMarkInvoicePaid = async (req, res) => {
   try {
     const { paidAmount } = req.body;
-    const invoice = await markInvoicePaid(req.params.id, paidAmount, req.user.id);
-    res.status(200).json(invoice);
+    const invoice = await getInvoiceById(req.params.id);
+
+    if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+    if (req.user.role !== 'finance' && String(invoice.userId) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    const paidInvoice = await markInvoicePaid(req.params.id, paidAmount, req.user.id);
+    res.status(200).json(paidInvoice);
   } catch (error) {
     console.error('Error marking invoice paid:', error);
     if (error.status) return res.status(error.status).json({ message: error.message });
