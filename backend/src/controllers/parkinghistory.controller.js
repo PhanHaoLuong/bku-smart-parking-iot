@@ -4,7 +4,7 @@ export const getParkingHistory = async (req, res) => {
   const { id: paramUserId } = req.params;
   const requesterId = req.user?.userId || req.user?.id;
   const requesterRole = req.user?.role;
-  const canAccessAll = ['operator', 'admin', 'finance'].includes(requesterRole);
+  const canAccessAll = ['operator', 'finance'].includes(requesterRole);
 
   try {
     let parkingHistories;

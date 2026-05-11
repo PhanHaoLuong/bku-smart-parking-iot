@@ -22,7 +22,7 @@
 
 ### 3) RBAC và bảo mật ứng dụng
 - Middleware bảo vệ route backend chưa đúng chuẩn server-side (đang dùng `localStorage` trong backend middleware).
-- Chưa áp dụng RBAC thực sự cho các vai trò: end user, parking operator, system admin. 
+- Chưa áp dụng RBAC thực sự cho các vai trò: end user, parking operator, finance. 
 - Chưa có phân tách quyền truy cập API theo chức năng vận hành/quản trị.
 - JWT chưa implement (đúng theo chỉ đạo: để cuối cùng).
 

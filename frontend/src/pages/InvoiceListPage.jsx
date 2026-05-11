@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../stores/authStore';
 import { authedFetch, authedJsonFetch } from '../api/authedFetch';
+import AppLayout from '../components/layout/AppLayout';
+import '../styles/AppLayout.css';
 
 function InvoiceListPage() {
   const [invoices, setInvoices] = useState([]);
@@ -9,7 +11,7 @@ function InvoiceListPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [generating, setGenerating] = useState(false);
   const role = useAuth((state) => state.role);
-  const isFinance = role === 'finance' || role === 'admin';
+  const isFinance = role === 'finance';
 
   const fetchInvoices = async () => {
     try {
@@ -63,10 +65,10 @@ function InvoiceListPage() {
 
   const formatVND = (n) => (n || 0).toLocaleString() + ' VND';
 
-  if (loading) return <div className="page-container"><p>Loading invoices...</p></div>;
+  if (loading) return <AppLayout title="Invoices"><div className="loading">Loading invoices...</div></AppLayout>;
 
   return (
-    <div className="page-container">
+    <AppLayout title="Invoices" subtitle="Manage invoices">
       <div className="page-header">
         <h1>Invoices</h1>
         <div className="header-actions">
@@ -151,7 +153,7 @@ function InvoiceListPage() {
           ))}
         </div>
       )}
-    </div>
+    </AppLayout>
   );
 }
 

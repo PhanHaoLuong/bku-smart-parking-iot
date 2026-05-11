@@ -12,11 +12,6 @@ export const requireRole = (...allowedRoles) => {
       return res.status(401).json({ message: 'Unauthorized — malformed token payload' });
     }
 
-    if (sessionUser.role === 'admin') {
-      req.user = sessionUser;
-      return next();
-    }
-
     if (!allowedRoles.includes(sessionUser.role)) {
       return res.status(403).json({ message: 'Forbidden — insufficient permissions' });
     }

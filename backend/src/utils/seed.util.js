@@ -25,6 +25,7 @@ const demoUsers = [
     password: String(bcrypt.hashSync('123', 10)),
     role: 'learner',
     userType: 'learner',
+    vehicleType: 'motorcycle',
     cardActive: true,
     fullName: 'Phan Van A',
     email: 'a.phanvan@hcmut.edu.vn',
@@ -34,23 +35,16 @@ const demoUsers = [
     password: String(bcrypt.hashSync('123', 10)),
     role: 'operator',
     userType: 'staff',
+    vehicleType: 'motorcycle',
     cardActive: true,
     fullName: 'Facility Staff',
     email: 'staff@hcmut.edu.vn',
   },
   {
-    username: 'admin',
-    password: String(bcrypt.hashSync('123', 10)),
-    role: 'admin',
-    userType: 'staff',
-    cardActive: true,
-    fullName: 'Admin User',
-    email: 'admin@hcmut.edu.vn',
-  },
-  {
     username: 'parkingop',
     password: String(bcrypt.hashSync('123', 10)),
     role: 'operator',
+    vehicleType: 'motorcycle',
     cardActive: true,
     fullName: 'Parking Operator',
     email: 'parking@hcmut.edu.vn',
@@ -60,6 +54,7 @@ const demoUsers = [
     password: String(bcrypt.hashSync('123', 10)),
     role: 'faculty',
     userType: 'faculty',
+    vehicleType: 'car',
     cardActive: true,
     fullName: 'Faculty Member',
     email: 'faculty01@hcmut.edu.vn',
@@ -69,6 +64,7 @@ const demoUsers = [
     password: String(bcrypt.hashSync('123', 10)),
     role: 'learner',
     userType: 'learner',
+    vehicleType: 'motorcycle',
     cardActive: true,
     fullName: 'Learner Two',
     email: 'learner02@hcmut.edu.vn',
@@ -78,6 +74,7 @@ const demoUsers = [
     password: String(bcrypt.hashSync('123', 10)),
     role: 'finance',
     userType: 'staff',
+    vehicleType: 'motorcycle',
     cardActive: true,
     fullName: 'Finance Officer',
     email: 'finance@hcmut.edu.vn',
@@ -369,13 +366,13 @@ const defaultPolicies = [
 ];
 
 const seedDefaultPolicies = async () => {
-  const admin = await User.findOne({ role: 'admin' }).lean();
-  const adminId = admin?._id?.toString() || 'system';
+  const operator = await User.findOne({ role: 'operator' }).lean();
+  const operatorId = operator?._id?.toString() || 'system';
 
   for (const policy of defaultPolicies) {
     await PricingPolicy.findOneAndUpdate(
       { userType: policy.userType, vehicleType: policy.vehicleType, isActive: true },
-      { $setOnInsert: { ...policy, isActive: true, createdBy: adminId, updatedBy: adminId } },
+      { $setOnInsert: { ...policy, isActive: true, createdBy: operatorId, updatedBy: operatorId } },
       { upsert: true }
     );
   }
@@ -395,8 +392,8 @@ const seedDemoBillingData = async () => {
   const userMap = {};
   for (const u of users) userMap[u.username] = u;
 
-  const adminUser = users.find((u) => u.role === 'admin');
-  const adminId = adminUser?._id?.toString() || 'system';
+  const operatorUser = users.find((u) => u.role === 'operator');
+  const operatorId = operatorUser?._id?.toString() || 'system';
 
   const learner1 = userMap['2452712'];
   const learner2 = userMap['learner02'];
@@ -432,7 +429,7 @@ const seedDemoBillingData = async () => {
         dueDate,
         paidAt: new Date(),
         paidAmount: total1,
-        paidBy: adminId,
+        paidBy: operatorId,
         items,
       });
     }
@@ -490,8 +487,8 @@ const seedDemoBillingData = async () => {
 
   await AuditLog.create({
     action: 'pricing_created',
-    performedBy: adminId,
-    performedByRole: 'admin',
+    performedBy: operatorId,
+    performedByRole: 'operator',
     description: 'Seeded default pricing policies',
     details: { count: defaultPolicies.length },
     timestamp: new Date(),
@@ -499,8 +496,8 @@ const seedDemoBillingData = async () => {
 
   await AuditLog.create({
     action: 'invoice_generated',
-    performedBy: adminId,
-    performedByRole: 'admin',
+    performedBy: operatorId,
+    performedByRole: 'operator',
     description: 'Seeded demo invoices for learners 2452712 and learner02',
     details: {},
     timestamp: new Date(),

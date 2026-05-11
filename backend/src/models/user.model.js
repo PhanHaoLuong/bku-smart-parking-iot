@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       default: 'learner',
-      enum: ['admin', 'operator', 'learner', 'faculty', 'finance'],
+      enum: ['operator', 'learner', 'faculty', 'finance'],
     },
     userType: {
       type: String,
@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
+    },
+    vehicleType: {
+      type: String,
+      enum: ['motorcycle', 'bicycle', 'car'],
+      default: 'motorcycle',
     },
   },
   {

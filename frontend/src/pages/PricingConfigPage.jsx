@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { authedFetch, authedJsonFetch } from '../api/authedFetch';
+import AppLayout from '../components/layout/AppLayout';
+import '../styles/AppLayout.css';
 
 function PricingConfigPage() {
   const [policies, setPolicies] = useState([]);
@@ -128,18 +130,17 @@ function PricingConfigPage() {
     return `${(p.daytimeRate || 0).toLocaleString()} / ${(p.eveningRate || 0).toLocaleString()}`;
   };
 
-  if (loading) return <div className="page-container"><p>Loading policies...</p></div>;
+  if (loading) return <AppLayout title="Pricing Configuration"><div className="loading">Loading policies...</div></AppLayout>;
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1>Pricing Policy Configuration</h1>
-        <button className="btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
+    <AppLayout title="Pricing Configuration" subtitle="Manage pricing policies">
+      <div style={{ marginBottom: '24px' }}>
+        <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
           Add New Policy
         </button>
       </div>
 
-      {error && <p className="error">{error}</p>}
+      {error && <div className="error">{error}</div>}
 
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
@@ -241,7 +242,7 @@ function PricingConfigPage() {
           </tbody>
         </table>
       )}
-    </div>
+    </AppLayout>
   );
 }
 

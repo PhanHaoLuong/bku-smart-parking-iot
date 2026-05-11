@@ -80,7 +80,7 @@ export const handleDeactivatePolicy = async (req, res) => {
 export const handleListInvoices = async (req, res) => {
   try {
     const filters = {};
-    if (req.user.role !== 'finance' && req.user.role !== 'admin') {
+    if (req.user.role !== 'finance') {
       filters.userId = req.user.id;
     } else if (req.query.userId) {
       filters.userId = req.query.userId;
@@ -100,7 +100,7 @@ export const handleGetInvoiceById = async (req, res) => {
     const invoice = await getInvoiceById(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
 
-    if (req.user.role !== 'finance' && req.user.role !== 'admin' && invoice.userId !== req.user.id) {
+    if (req.user.role !== 'finance' && invoice.userId !== req.user.id) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 

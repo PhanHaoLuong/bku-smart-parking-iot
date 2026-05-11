@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 function DashboardPage({ role }) {
-    const isFinance = role === 'finance' || role === 'admin';
+    const isFinance = role === 'finance';
 
     return(
         <div className="dashboard-page">

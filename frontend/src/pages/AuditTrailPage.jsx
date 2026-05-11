@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { authedFetch } from '../api/authedFetch';
+import AppLayout from '../components/layout/AppLayout';
+import '../styles/AppLayout.css';
 
 function AuditTrailPage() {
   const [logs, setLogs] = useState([]);
@@ -34,10 +36,10 @@ function AuditTrailPage() {
     'visitor_paid',
   ];
 
-  if (loading) return <div className="page-container"><p>Loading audit trail...</p></div>;
+  if (loading) return <AppLayout title="Audit Trail"><div className="loading">Loading audit trail...</div></AppLayout>;
 
   return (
-    <div className="page-container">
+    <AppLayout title="Audit Trail" subtitle="System activity">
       <div className="page-header">
         <h1>Audit Trail</h1>
         <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)}>
@@ -85,7 +87,7 @@ function AuditTrailPage() {
           </tbody>
         </table>
       )}
-    </div>
+    </AppLayout>
   );
 }
 

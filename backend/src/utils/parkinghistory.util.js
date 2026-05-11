@@ -1,5 +1,4 @@
 import ParkingSession from '../models/parkingsession.model.js';
-import { seedDemoUsers } from './user.util.js';
 
 export const addParkingSession = async (session) => ParkingSession.create(session);
 

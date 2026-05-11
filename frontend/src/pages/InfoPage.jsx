@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import LearnerLayout from '../components/learner/LearnerLayout';
+import AppLayout from '../components/layout/AppLayout';
 import { authedFetch } from '../api/authedFetch';
-import '../styles/InfoPage.css';
+import '../styles/AppLayout.css';
 
 function InfoItem({ label, value }) {
   return (
-    <div className="info-item">
-      <span>{label}</span>
-      <strong>{value || 'Not available'}</strong>
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #e1e5eb' }}>
+      <span style={{ color: '#6b7280' }}>{label}</span>
+      <strong style={{ color: '#1a1a2e' }}>{value || 'Not available'}</strong>
     </div>
   );
 }
@@ -15,14 +15,12 @@ function InfoItem({ label, value }) {
 function InfoPage() {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
         setLoading(true);
-        setError('');
-
         const response = await authedFetch('/apiv1/auth/user-info');
 
         if (!response.ok) {
@@ -31,9 +29,8 @@ function InfoPage() {
 
         const userData = await response.json();
         setUserInfo(userData);
-      } catch (fetchError) {
-        console.error('Error fetching user info:', fetchError);
-        setError('Unable to load personal information.');
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -42,109 +39,60 @@ function InfoPage() {
     fetchUserInfo();
   }, []);
 
-  return (
-    <LearnerLayout
-      title="Personal Information"
-      subtitle="View your learner profile"
-    >
-      {loading && (
-        <div className="info-state-card">
-          Loading personal information...
-        </div>
-      )}
+  const content = (
+    <>
+      {error && <div className="error">Error: {error}</div>}
 
-      {error && (
-        <div className="info-error-card">
-          {error}
-        </div>
-      )}
-
-      {!loading && !error && !userInfo && (
-        <div className="info-state-card">
-          No user information available.
-        </div>
-      )}
-
-      {!loading && !error && userInfo && (
-        <div className="info-page-grid">
-          <section className="profile-card">
-            <div className="profile-header">
-              <div className="profile-avatar">
-                {userInfo.fullName
-                  ? userInfo.fullName.charAt(0).toUpperCase()
-                  : 'U'}
+      {loading ? (
+        <div className="loading">Loading personal information...</div>
+      ) : !userInfo ? (
+        <div className="empty-state">No user information available.</div>
+      ) : (
+        <>
+          <div className="card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#2563eb',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                fontWeight: '600'
+              }}>
+                {userInfo.fullName?.charAt(0) || 'U'}
               </div>
-
               <div>
-                <h2>{userInfo.fullName || 'Learner User'}</h2>
-                <p>{userInfo.email || 'No email available'}</p>
+                <h2 style={{ margin: 0, fontSize: '20px' }}>{userInfo.fullName || 'Learner User'}</h2>
+                <p style={{ margin: '4px 0 0', color: '#6b7280' }}>{userInfo.email || 'No email'}</p>
+                <span className="badge badge-active" style={{ marginTop: '8px' }}>{userInfo.role || 'learner'}</span>
               </div>
             </div>
+          </div>
 
-            <div className="profile-role-badge">
-              {userInfo.role || 'learner'}
-            </div>
-          </section>
-
-          <section className="info-card">
-            <div className="info-card-header">
+          <div className="card">
+            <div className="card-header">
               <h2>Account Details</h2>
-              <p>Basic information connected to your BKU Parking account.</p>
             </div>
-
-            <div className="info-list">
+            <div style={{ marginTop: '8px' }}>
               <InfoItem label="Username" value={userInfo.username} />
               <InfoItem label="Full Name" value={userInfo.fullName} />
               <InfoItem label="Email" value={userInfo.email} />
               <InfoItem label="Role" value={userInfo.role} />
             </div>
-          </section>
-
-          <section className="info-card">
-            <div className="info-card-header">
-              <h2>Vehicle Information</h2>
-              <p>Your registered vehicle information.</p>
-            </div>
-
-            <div className="info-list">
-              <InfoItem
-                label="Plate Number"
-                value={userInfo.plateNumber || '50H-10962'}
-              />
-
-              <InfoItem
-                label="Vehicle Type"
-                value={userInfo.vehicleType || 'Motorbike'}
-              />
-
-              <InfoItem
-                label="Registration Status"
-                value={userInfo.vehicleStatus || 'Registered'}
-              />
-            </div>
-          </section>
-
-          <section className="info-card full-width">
-            <div className="info-card-header">
-              <h2>Account Status</h2>
-              <p>Current status of your learner account.</p>
-            </div>
-
-            <div className="status-panel">
-              <div>
-                <span className="status-dot"></span>
-                <strong>Active account</strong>
-              </div>
-
-              <p>
-                Your account is currently active and allowed to access learner
-                parking services.
-              </p>
-            </div>
-          </section>
-        </div>
+          </div>
+        </>
       )}
-    </LearnerLayout>
+    </>
+  );
+
+  return (
+    <AppLayout title="Personal Information" subtitle="View your profile">
+      {content}
+    </AppLayout>
   );
 }
 

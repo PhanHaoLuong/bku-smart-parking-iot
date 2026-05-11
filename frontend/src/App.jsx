@@ -26,7 +26,20 @@ function ProtectedRoute({ children }) {
 
 function AppRoutes() {
   const { isAuthenticated, role, userId, handleLogin, handleLogout, syncFromSession } = useAuth();
-  const isFinance = role === 'finance' || role === 'admin';
+
+  // Role to dashboard route mapping
+  const roleConfig = {
+    finance: { dashboard: '/finance-dashboard', redirect: '/finance-dashboard' },
+    operator: { dashboard: '/staff-dashboard', redirect: '/staff-dashboard' },
+    learner: { dashboard: '/dashboard', redirect: null },
+    faculty: { dashboard: '/dashboard', redirect: null },
+  };
+
+  const config = roleConfig[role] || roleConfig.learner;
+  const isFinance = role === 'finance';
+
+  // Redirect after login based on role
+  const getLoginRedirect = () => config.redirect || '/dashboard';
 
   useEffect(() => {
     void syncFromSession();
@@ -38,13 +51,24 @@ function AppRoutes() {
         path="/auth"
         element={
           isAuthenticated ? (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={getLoginRedirect()} replace />
           ) : (
             <LoginPage onLogin={handleLogin} />
           )
         }
       />
-      <Route path="/dashboard" element={<ProtectedRoute><LearnerDashboardPage role={role} userId={userId} /></ProtectedRoute>} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            {isFinance ? (
+              <Navigate to="/finance-dashboard" replace />
+            ) : (
+              <LearnerDashboardPage role={role} userId={userId} />
+            )}
+          </ProtectedRoute>
+        }
+      />
       <Route path="/parking-history" element={<ProtectedRoute><ParkingHistoryPage role={role} userId={userId} /></ProtectedRoute>} />
       <Route path="/info" element={<ProtectedRoute><InfoPage /></ProtectedRoute>} />
       <Route path="/staff-dashboard" element={<ProtectedRoute><StaffDashboardPage /></ProtectedRoute>} />

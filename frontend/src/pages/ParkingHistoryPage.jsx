@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import LearnerLayout from '../components/learner/LearnerLayout';
+import AppLayout from '../components/layout/AppLayout';
 import { authedFetch } from '../api/authedFetch';
-import '../styles/ParkingHistoryPage.css';
+import '../styles/AppLayout.css';
 
 function formatDateTime(value) {
   if (!value) return 'Still parked';
-
   return new Date(value).toLocaleString();
 }
 
@@ -16,7 +15,7 @@ function getParkingStatus(exitTime) {
 function ParkingHistoryPage({ role, userId }) {
   const [parkingHistory, setParkingHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
 
   const activeSession = useMemo(() => {
     return parkingHistory.find((entry) => !entry.exitTime);
@@ -30,10 +29,10 @@ function ParkingHistoryPage({ role, userId }) {
     const fetchParkingHistory = async () => {
       try {
         setLoading(true);
-        setError('');
+        setError(null);
 
         const endpoint =
-          role === 'admin' || role === 'operator'
+          role === 'operator' || role === 'finance'
             ? '/apiv1/parking-history'
             : `/apiv1/parking-history/${userId}`;
 
@@ -45,9 +44,8 @@ function ParkingHistoryPage({ role, userId }) {
 
         const data = await response.json();
         setParkingHistory(Array.isArray(data) ? data : []);
-      } catch (fetchError) {
-        console.error('Error fetching parking history:', fetchError);
-        setError('Unable to load parking history.');
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -56,108 +54,81 @@ function ParkingHistoryPage({ role, userId }) {
     fetchParkingHistory();
   }, [role, userId]);
 
-  return (
-    <LearnerLayout
-      title="Parking History"
-      subtitle="Track your parking activities"
-    >
-      <section className="parking-history-summary-grid">
-        <div className="parking-summary-card">
+  const content = (
+    <>
+      {error && <div className="error">{error}</div>}
+
+      <div className="stats-grid" style={{ marginBottom: '24px' }}>
+        <div className="stat-card">
           <p>Total Records</p>
           <h3>{parkingHistory.length}</h3>
           <span>All parking activities</span>
         </div>
 
-        <div className="parking-summary-card">
+        <div className="stat-card">
           <p>Active Session</p>
           <h3>{activeSession ? '1' : '0'}</h3>
-          <span>{activeSession ? activeSession.plateNumber : 'No active vehicle'}</span>
+          <span>{activeSession?.plateNumber || 'No active vehicle'}</span>
         </div>
 
-        <div className="parking-summary-card">
+        <div className="stat-card">
           <p>Completed</p>
           <h3>{completedRecords}</h3>
           <span>Finished parking sessions</span>
         </div>
-      </section>
+      </div>
 
-      <section className="parking-history-card">
-        <div className="parking-history-card-header">
-          <div>
+      {loading ? (
+        <div className="loading">Loading parking history...</div>
+      ) : parkingHistory.length === 0 ? (
+        <div className="empty-state card">No parking history available.</div>
+      ) : (
+        <div className="card">
+          <div className="card-header">
             <h2>Recent Parking Records</h2>
-            <p>Review plate number, entry time, exit time, and parking status.</p>
+            <p>Plate number, entry time, exit time, and parking status.</p>
           </div>
+
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Plate Number</th>
+                <th>Entry Time</th>
+                <th>Exit Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {parkingHistory.map((entry, index) => {
+                const status = getParkingStatus(entry.exitTime);
+                return (
+                  <tr key={entry._id || index}>
+                    <td>{index + 1}</td>
+                    <td>
+                      <span className="badge badge-active">{entry.plateNumber}</span>
+                    </td>
+                    <td>{formatDateTime(entry.entryTime)}</td>
+                    <td>{formatDateTime(entry.exitTime)}</td>
+                    <td>
+                      <span className={`badge ${status === 'Active' ? 'badge-pending' : 'badge-paid'}`}>
+                        {status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
+      )}
+    </>
+  );
 
-        {loading && (
-          <div className="parking-state-box">
-            Loading parking history...
-          </div>
-        )}
-
-        {error && (
-          <div className="parking-error-box">
-            {error}
-          </div>
-        )}
-
-        {!loading && !error && parkingHistory.length === 0 && (
-          <div className="parking-state-box">
-            No parking history available.
-          </div>
-        )}
-
-        {!loading && !error && parkingHistory.length > 0 && (
-          <div className="parking-table-wrapper">
-            <table className="parking-history-table">
-              <thead>
-                <tr>
-                  <th>No.</th>
-                  <th>Plate Number</th>
-                  <th>Entry Time</th>
-                  <th>Exit Time</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {parkingHistory.map((entry, index) => {
-                  const status = getParkingStatus(entry.exitTime);
-
-                  return (
-                    <tr key={entry._id || index}>
-                      <td>{index + 1}</td>
-
-                      <td>
-                        <span className="plate-badge">
-                          {entry.plateNumber}
-                        </span>
-                      </td>
-
-                      <td>{formatDateTime(entry.entryTime)}</td>
-
-                      <td>{formatDateTime(entry.exitTime)}</td>
-
-                      <td>
-                        <span
-                          className={
-                            status === 'Active'
-                              ? 'status-badge active'
-                              : 'status-badge completed'
-                          }
-                        >
-                          {status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    </LearnerLayout>
+  return (
+    <AppLayout title="Parking History" subtitle="Track your parking">
+      {content}
+    </AppLayout>
   );
 }
 
