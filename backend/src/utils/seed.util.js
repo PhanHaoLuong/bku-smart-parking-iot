@@ -283,7 +283,8 @@ const seedDemoParkingInfrastructure = async () => {
       for (let sessionIndex = 0; sessionIndex < HISTORY_ENTRIES_PER_USER; sessionIndex++) {
         const baseTime = buildHistorySessionStart(dayOffset, userIndex, sessionIndex);
         const slot = slots[randomInt(0, slots.length - 1)];
-        const state = sessionIndex % 3 === 0 ? 'occupied' : 'exited';
+        // All 5 sessions are completed (exited)
+        const state = 'exited';
 
         const timeline = buildParkingTimeline(
           slot,
@@ -298,6 +299,28 @@ const seedDemoParkingInfrastructure = async () => {
         allEvents.push(...timeline.events);
         allSessions.push(timeline.session);
       }
+    }
+  }
+
+  // Add 2 active (parked) sessions for each end user
+  for (let u = 0; u < endUsersWithVehicleTypes.length; u++) {
+    const { user, vehicleTypes } = endUsersWithVehicleTypes[u];
+    for (let i = 0; i < 2; i++) {
+      const slot = slots[randomInt(0, slots.length - 1)];
+      const entryTime = new Date(Date.now() - randomInt(1, 4) * 60 * 60 * 1000); // 1-4 hours ago
+
+      const timeline = buildParkingTimeline(
+        slot,
+        user,
+        'occupied',
+        entryTime,
+        1000 + u * 10 + i,
+        vehicleTypes[i % vehicleTypes.length]
+      );
+
+      if (!timeline) continue;
+      allEvents.push(...timeline.events);
+      allSessions.push(timeline.session);
     }
   }
 
@@ -362,8 +385,8 @@ const seedDemoBillingData = async () => {
   if (learner1) {
     const learner1Sessions = sessions.filter((s) => s.userId === learner1._id.toString()).slice(0, 3);
     const now = new Date();
-    const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const dueDate = new Date(periodEnd);
     dueDate.setDate(dueDate.getDate() + 15);
 
@@ -392,8 +415,8 @@ const seedDemoBillingData = async () => {
   if (learner2) {
     const learner2Sessions = sessions.filter((s) => s.userId === learner2._id.toString()).slice(0, 2);
     const now = new Date();
-    const periodStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const periodEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const dueDate = new Date(periodEnd);
     dueDate.setDate(dueDate.getDate() + 15);
 
