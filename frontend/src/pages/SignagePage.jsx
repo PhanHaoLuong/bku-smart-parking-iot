@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { getSignageStatus } from '../api/signageApi';
-import '../styles/SignagePage.css';
+import campusMap from '../assets/Campus-Map-HCMUT.jpg';
+import '../styles/PublicSignageLayout.css';
 
 const LOT_NAMES = {
-  'lot-1': 'Khu vực A',
-  'lot-3': 'Khu vực B',
+  'lot-1': 'Lý Thường Kiệt',
+  'lot-3': 'Tô Hiến Thành',
+};
+
+const LOT_ALLIAS = {
+  'lot-1': 'Cổng 1',
+  'lot-3': 'Cổng 3',
 };
 
 const STATUS_CONFIG = {
@@ -21,7 +27,7 @@ function SignageCard({ lot }) {
     <div className="signage-card">
       <div className="signage-header">
         <h2 className="lot-name">{LOT_NAMES[lot.lotId] || lot.lotId}</h2>
-        <span className="lot-id">{lot.lotId}</span>
+        <span className="lot-id">{LOT_ALLIAS[lot.lotId] || lot.lotId}</span>
       </div>
 
       <div className="status-badge" style={{ backgroundColor: statusConfig.bgColor }}>
@@ -58,6 +64,19 @@ function SignagePage() {
   const [lots, setLots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedLot, setSelectedLot] = useState(null);
+
+  // Marker positions - adjust these percentages to position on your map
+  // Values are percentage from left,percentage from top
+  const markerPositions = {
+    'lot-1': { left: '40%', top: '50%' },
+    'lot-3': { left: '80%', top: '76%' },
+  };
+
+  const handleMarkerClick = (lotId) => {
+    // Toggle: if clicking already selected lot, close it; otherwise open it
+    setSelectedLot(selectedLot === lotId ? null : lotId);
+  };
 
   const fetchData = async () => {
     try {
@@ -80,27 +99,68 @@ function SignagePage() {
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+
+    // Expose lot selection function for image map
+    window.selectLot = (lotId) => {
+      setSelectedLot(lotId);
+    };
+
+    return () => {
+      clearInterval(interval);
+      delete window.selectLot;
+    };
   }, []);
+
+  const handleCloseLot = () => {
+    setSelectedLot(null);
+  };
 
   const content = (
     <div className="signage-container">
-      {error && <div className="signage-error">{error}</div>}
-
-      {loading ? (
-        <div className="signage-loading">Đang tải...</div>
-      ) : (
-        <div className="signage-grid">
-          {lots.map((lot) => (
-            <SignageCard key={lot.lotId} lot={lot} />
+      <div className="signage-map">
+        <img src={campusMap} alt="Campus Map" className="signage-map-img" />
+        <div className="signage-markers">
+          {Object.entries(markerPositions).map(([lotId, pos]) => (
+            <button
+              key={lotId}
+              className={`signage-marker ${selectedLot === lotId ? 'active' : ''}`}
+              style={{ left: pos.left, top: pos.top }}
+              onClick={() => handleMarkerClick(lotId)}
+              title={LOT_NAMES[lotId]}
+            >
+              {lotId === 'lot-1' ? '1' : '3'}
+            </button>
           ))}
         </div>
-      )}
+
+        {selectedLot && markerPositions[selectedLot] && (
+          <div
+            className="signage-lot-modal"
+            style={{
+              left: markerPositions[selectedLot].left,
+              top: markerPositions[selectedLot].top,
+            }}
+          >
+            <button className="signage-lot-close" onClick={handleCloseLot}>
+              ✕
+            </button>
+            {loading ? (
+              <div className="signage-loading">Đang tải...</div>
+            ) : (
+              lots.filter(lot => lot.lotId === selectedLot).map((lot) => (
+                <SignageCard key={lot.lotId} lot={lot} />
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {error && <div className="signage-error">{error}</div>}
     </div>
   );
 
   return (
-    <div className="signage-page">
+    <div className="public-signage-layout">
       <header className="signage-page-header">
         <h1 className="signage-title">Bảng Thông Tin Bãi Đỗ Xe</h1>
         <div className="header-decoration"></div>
