@@ -15,7 +15,7 @@ const LOTS = [
   { lotId: 'lot-3', slotPrefix: 'L3' },
 ];
 
-const SLOTS_PER_LOT = 20;
+const SLOTS_PER_LOT = 60;
 const HISTORY_DAYS = 5;
 const END_USER_TYPES = ['learner', 'faculty'];
 const HISTORY_ENTRIES_PER_USER = 1;

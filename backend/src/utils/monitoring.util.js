@@ -10,7 +10,8 @@ const getUtcDayRange = () => {
 };
 
 export async function getMonitoringSummary(lotId) {
-  const lotFilter = lotId ? { iotId: lotId } : {};
+  // iotId format is 'iot-lot-1-L101', so use regex to match all slots for a lot
+  const lotFilter = lotId ? { iotId: { $regex: `^iot-${lotId}` } } : {};
   const sessionLotFilter = lotId ? { parkingLot: lotId } : {};
   const { start, end } = getUtcDayRange();
 
@@ -46,7 +47,7 @@ export async function getMonitoringSlots({ lotId, status, limit = 300 }) {
   const query = {};
 
   if (lotId) {
-    query.iotId = lotId;
+    query.iotId = { $regex: `^iot-${lotId}` };
   }
 
   if (status) {

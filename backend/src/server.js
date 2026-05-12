@@ -11,6 +11,7 @@ import parkingHistoryRoute from './routes/parkinghistory.route.js';
 import billingRoute from './routes/billing.route.js';
 import iotRoute from './routes/iot.route.js';
 import monitoringRoute from './routes/monitoring.route.js';
+import signageRoute from './routes/signage.route.js';
 
 
 const app = express();
@@ -39,6 +40,7 @@ app.use('/apiv1/parking-history', parkingHistoryRoute);
 app.use('/apiv1/iot', iotRoute);
 app.use('/apiv1/billing', billingRoute);
 app.use('/apiv1/monitoring', monitoringRoute);
+app.use('/apiv1/signage', signageRoute);
 
 app.use((req, res) => {
   res.status(404).json({

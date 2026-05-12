@@ -2,28 +2,33 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Project**: BKU Smart Parking IoT — Monorepo for a university parking management system with IoT integration, role-based access, and billing features.
+
 ## Common Commands
 
 ```bash
-# Run everything (MongoDB via Docker + backend :5000 + frontend :5173)
-make dev
+# Start everything (MongoDB + backend + frontend) - all via Docker
+docker compose up -d
 
-# Individual services
-make db          # MongoDB on 27017
-make be          # Express backend on :5000
-make fe          # Vite frontend on :5173
+# Stop all services
+docker compose down
 
-# Or via npm
+# View logs
+docker compose logs -f
+
+# Or run locally without Docker
 npm run dev               # backend + frontend concurrently
 npm run dev:backend       # backend only (nodemon)
 npm run dev:frontend      # frontend only
 
 npm run build             # build frontend
 npm run start             # backend production mode
-
-# Frontend linting
-npm run lint --prefix frontend
 ```
+
+**Ports when running with docker compose:**
+- Frontend: http://localhost:5173
+- Backend: http://localhost:5001 (mapped to container port 5000)
+- MongoDB: localhost:27017
 
 No test suite is configured yet (`npm test` echoes a placeholder).
 
@@ -70,7 +75,7 @@ Layered structure: **routes → controllers → utils → models**.
 
 ### Docker
 
-`docker-compose.yml` defines `mongo`, `backend`, and `frontend` services. `make dev` only starts mongo; the full compose stack is for production-like deployment.
+`docker-compose.yml` defines `mongo`, `backend`, and `frontend` services. Run `docker compose up -d` to start all services.
 
 ## Key Design Notes
 
@@ -79,3 +84,12 @@ Layered structure: **routes → controllers → utils → models**.
 - **JWT is intentionally deferred** per project scope — current auth is a placeholder.
 - External integrations (HCMUT_SSO, BKPay) are noted in `docs/update.md` but not implemented; all data is mocked/seeded.
 - **Billing features**: Role `finance` has access to pricing configuration, invoice management, and audit trails. Pricing policies support per-vehicle-type rates and role-based discounts.
+
+## Scope & Limitations
+
+See `docs/update.md` for detailed scope notes — it lists what's implemented vs. what's missing from the `specs.pdf` requirements. Key items still pending: JWT authentication (deferred), external integrations (HCMUT_SSO, BKPay), real-time IoT via WebSocket/SSE, and automated tests.
+
+## Documentation
+
+- `docs/update.md` — Project scope, missing features vs. specs, billing service design notes
+- `docs/specs.pdf` — Full specification document (reference only, not implemented)
