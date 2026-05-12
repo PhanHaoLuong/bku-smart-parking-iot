@@ -26,7 +26,7 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, role, userId, handleLogin, handleLogout, syncFromSession } = useAuth();
+  const { isAuthenticated, role, userId, handleLogin, syncFromSession } = useAuth();
 
   // Role to dashboard route mapping
   const roleConfig = {
