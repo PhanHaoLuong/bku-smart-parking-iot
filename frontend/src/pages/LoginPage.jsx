@@ -45,7 +45,7 @@ function LoginPage({ onLogin }) {
         <div className="login-header">
           <img src={logo} alt="HCMUT Logo" className="login-logo" />
           <h1>BKU Smart Parking</h1>
-          <p>Login to manage your parking account</p>
+          <p>Đăng nhập</p>
         </div>
 
         <LoginForm

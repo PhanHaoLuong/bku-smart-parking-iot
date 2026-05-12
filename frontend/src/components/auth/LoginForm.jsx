@@ -16,22 +16,22 @@ function LoginForm({ onSubmit, loading, error }) {
   return (
     <form className="login-form" onSubmit={handleSubmit}>
       <div className="form-group">
-        <label htmlFor="username">Username</label>
+        <label htmlFor="username">Tên đăng nhập</label>
         <input
           id="username"
           type="text"
-          placeholder="Enter your username"
+          placeholder="Nhập tên đăng nhập"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
         />
       </div>
 
       <div className="form-group">
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password">Mật khẩu</label>
         <input
           id="password"
           type="password"
-          placeholder="Enter your password"
+          placeholder="Nhập mật khẩu"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
@@ -40,7 +40,7 @@ function LoginForm({ onSubmit, loading, error }) {
       {error && <p className="error-message">{error}</p>}
 
       <button type="submit" disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
+        {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
       </button>
     </form>
   );
