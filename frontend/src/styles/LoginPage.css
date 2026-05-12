@@ -5,20 +5,55 @@
   justify-content: center;
   background: linear-gradient(135deg, #e8f1ff, #f7f9fc);
   padding: 24px;
+  overflow: visible;
 }
 
 .login-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 520px;
   background: #ffffff;
-  border-radius: 18px;
-  padding: 32px;
+  border-radius: 4px;
+  padding: 40px 40px;
   box-shadow: 0 12px 35px rgba(15, 23, 42, 0.12);
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.login-back {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.login-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.2s;
+  background: #dbeafe;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  align-self: flex-start;
 }
 
 .login-header {
   text-align: center;
-  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-logo {
+  width: 200px;
+  height: auto;
 }
 
 .login-header h1 {
@@ -29,21 +64,21 @@
 }
 
 .login-header p {
-  margin-top: 8px;
   color: #64748b;
   font-size: 14px;
+  margin: 0;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .form-group label {
@@ -53,10 +88,10 @@
 }
 
 .form-group input {
-  height: 44px;
+  height: 52px;
   border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 0 14px;
+  border-radius: 4px;
+  padding: 0 16px;
   font-size: 15px;
   outline: none;
   transition: 0.2s ease;
@@ -72,14 +107,14 @@
   color: #dc2626;
   font-size: 14px;
   background: #fee2e2;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: 12px 14px;
+  border-radius: 4px;
 }
 
 .login-form button {
-  height: 46px;
+  height: 52px;
   border: none;
-  border-radius: 10px;
+  border-radius: 4px;
   background: #2563eb;
   color: white;
   font-size: 15px;

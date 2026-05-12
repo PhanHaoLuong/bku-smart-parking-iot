@@ -156,6 +156,25 @@ function SignagePage() {
       </div>
 
       {error && <div className="signage-error">{error}</div>}
+
+      <div className="signage-legend">
+        <div className="signage-legend-title">Khu vực bãi đỗ xe</div>
+        <div className="signage-legend-items">
+          {Object.entries(LOT_NAMES).map(([lotId, name]) => (
+            <button
+              key={lotId}
+              className={`signage-legend-item ${selectedLot === lotId ? 'active' : ''}`}
+              onClick={() => handleMarkerClick(lotId)}
+            >
+              <span className="signage-legend-marker">{lotId === 'lot-1' ? '1' : '3'}</span>
+              <div className="signage-legend-info">
+                <span className="signage-legend-name">{name}</span>
+                <span className="signage-legend-alias">{LOT_ALLIAS[lotId]}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 
@@ -163,7 +182,9 @@ function SignagePage() {
     <div className="public-signage-layout">
       <header className="signage-page-header">
         <h1 className="signage-title">Bảng Thông Tin Bãi Đỗ Xe</h1>
-        <div className="header-decoration"></div>
+        <div className="signage-nav">
+          <a href="/auth" className="signage-nav-btn">Đăng nhập</a>
+        </div>
       </header>
       {content}
     </div>

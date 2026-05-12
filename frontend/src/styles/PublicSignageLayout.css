@@ -2,14 +2,44 @@
 
 .public-signage-layout {
   min-height: 100vh;
-  background: #f1f5f9;
+  background: #f8fafc;
   padding: 24px;
   box-sizing: border-box;
 }
 
 .signage-page-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.signage-nav {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.signage-nav-btn {
+  display: inline-block;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.signage-nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
 .signage-title {
@@ -17,14 +47,29 @@
   font-weight: 700;
   color: #0f172a;
   margin: 0;
+  display: inline-block;
+  position: relative;
+  padding: 0 20px;
 }
 
-.header-decoration {
-  height: 4px;
-  width: 120px;
-  margin: 12px auto 0;
-  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
-  border-radius: 2px;
+.signage-title::before,
+.signage-title::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #3b82f6);
+}
+
+.signage-title::before {
+  right: 100%;
+  background: linear-gradient(90deg, transparent, #3b82f6);
+}
+
+.signage-title::after {
+  left: 100%;
+  background: linear-gradient(90deg, #3b82f6, transparent);
 }
 
 .signage-container {
@@ -34,17 +79,18 @@
 
 .signage-map {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   position: relative;
   display: inline-block;
   max-width: 100%;
+  background: #ffffff;
 }
 
 .signage-map-img {
   max-width: 100%;
-  max-height: 800px;
+  max-height: 700px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #e2e8f0;
   display: block;
 }
 
@@ -290,4 +336,95 @@
   .free-slots-number {
     font-size: 36px;
   }
+}
+
+.signage-legend {
+  padding: 16px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+  position: relative;
+}
+
+.signage-legend::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  border-radius: 2px;
+}
+
+.signage-legend-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #0f172a;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.signage-legend-items {
+  display: flex;
+  gap: 32px;
+}
+
+.signage-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  background: #f1f5f9;
+}
+
+.signage-legend-item:hover {
+  background: #dbeafe;
+}
+
+.signage-legend-item.active {
+  background: #dbeafe;
+}
+
+.signage-legend-marker {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signage-legend-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.signage-legend-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.signage-legend-alias {
+  font-size: 12px;
+  color: #64748b;
 }

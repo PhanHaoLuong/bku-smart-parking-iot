@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import { login } from '../api/authApi';
+import logo from '../assets/logo-HCMUT.png';
 import '../styles/LoginPage.css';
 
 function LoginPage({ onLogin }) {
@@ -38,7 +39,11 @@ function LoginPage({ onLogin }) {
   return (
     <div className="login-page">
       <div className="login-card">
+        <div className="login-back">
+          <Link to="/signage" className="login-back-btn">← Bản đồ</Link>
+        </div>
         <div className="login-header">
+          <img src={logo} alt="HCMUT Logo" className="login-logo" />
           <h1>BKU Smart Parking</h1>
           <p>Login to manage your parking account</p>
         </div>

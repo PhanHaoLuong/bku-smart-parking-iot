@@ -87,7 +87,7 @@ function AppRoutes() {
         </>
       )}
 
-      <Route path="*" element={<Navigate to="/auth" />} />
+      <Route path="*" element={<Navigate to="/signage" />} />
     </Routes>
   );
 }
