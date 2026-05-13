@@ -35,6 +35,7 @@ const demoUsers = [
     role: 'learner',
     userType: 'learner',
     vehicleType: 'motorcycle',
+    plateNumber: '59A-11111',
     cardActive: true,
     fullName: 'Phan Van A',
     email: 'a.phanvan@hcmut.edu.vn',
@@ -45,6 +46,7 @@ const demoUsers = [
     role: 'learner',
     userType: 'learner',
     vehicleType: 'motorcycle',
+    plateNumber: '51C-22222',
     cardActive: true,
     fullName: 'Learner Two',
     email: 'learner02@hcmut.edu.vn',
@@ -55,6 +57,7 @@ const demoUsers = [
     role: 'learner',
     userType: 'learner',
     vehicleType: 'car',
+    plateNumber: '50H-33333',
     cardActive: true,
     fullName: 'Learner Three',
     email: 'learner03@hcmut.edu.vn',
@@ -65,6 +68,7 @@ const demoUsers = [
     role: 'operator',
     userType: 'staff',
     vehicleType: 'motorcycle',
+    plateNumber: '61A-44444',
     cardActive: true,
     fullName: 'Parking Operator',
     email: 'parking@hcmut.edu.vn',
@@ -75,6 +79,7 @@ const demoUsers = [
     role: 'faculty',
     userType: 'faculty',
     vehicleType: 'car',
+    plateNumber: '72B-55555',
     cardActive: true,
     fullName: 'Faculty Member One',
     email: 'faculty01@hcmut.edu.vn',
@@ -85,6 +90,7 @@ const demoUsers = [
     role: 'faculty',
     userType: 'faculty',
     vehicleType: 'motorcycle',
+    plateNumber: '59A-66666',
     cardActive: true,
     fullName: 'Faculty Member Two',
     email: 'faculty02@hcmut.edu.vn',
@@ -95,6 +101,7 @@ const demoUsers = [
     role: 'finance',
     userType: 'staff',
     vehicleType: 'motorcycle',
+    plateNumber: '51C-77777',
     cardActive: true,
     fullName: 'Finance Officer',
     email: 'finance@hcmut.edu.vn',
@@ -345,6 +352,7 @@ const defaultPolicies = [
   { userType: 'staff', vehicleType: 'bicycle', pricingMode: 'per-session', daytimeRate: 5000 },
   { userType: 'staff', vehicleType: 'car', pricingMode: 'per-hour', firstHourRate: 30000, subsequentHourlyRate: 15000 },
   { userType: 'visitor', vehicleType: 'car', pricingMode: 'per-hour', firstHourRate: 10000, subsequentHourlyRate: 5000 },
+  { userType: 'default', vehicleType: 'any', pricingMode: 'per-session', daytimeRate: 4999, eveningRate: 4999 },
 ];
 
 const seedDefaultPolicies = async () => {
@@ -354,7 +362,7 @@ const seedDefaultPolicies = async () => {
   for (const policy of defaultPolicies) {
     await PricingPolicy.findOneAndUpdate(
       { userType: policy.userType, vehicleType: policy.vehicleType, isActive: true },
-      { $setOnInsert: { ...policy, isActive: true, createdBy: operatorId, updatedBy: operatorId } },
+      { $set: { ...policy, isActive: true, createdBy: operatorId, updatedBy: operatorId } },
       { upsert: true }
     );
   }
@@ -391,14 +399,24 @@ const seedDemoBillingData = async () => {
     dueDate.setDate(dueDate.getDate() + 15);
 
     if (learner1Sessions.length > 0) {
-      const items = learner1Sessions.map((s) => ({
-        sessionId: s._id,
-        plateNumber: s.plateNumber,
-        entryTime: s.entryTime,
-        exitTime: s.exitTime,
-        fee: s.fee,
-      }));
-      const total1 = items.reduce((sum, i) => sum + (Number(i.fee) || 0), 0);
+      const policies = await PricingPolicy.find({ userType: 'learner', isActive: true }).lean();
+      const policyMap = {};
+      for (const p of policies) policyMap[p.vehicleType] = p;
+
+      const items = learner1Sessions.map((s) => {
+        const policy = policyMap[s.vehicleType || 'motorcycle'] || policyMap['motorcycle'];
+        const amount = (s.fee && s.fee > 0) ? s.fee : calculateSessionFee(s, policy);
+        return {
+          sessionId: s._id,
+          plateNumber: s.plateNumber,
+          entryTime: s.entryTime,
+          exitTime: s.exitTime,
+          amount,
+          rate: amount,
+          vehicleType: s.vehicleType,
+        };
+      });
+      const total1 = items.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 
       await Invoice.create({
         userId: learner1._id.toString(),
@@ -421,14 +439,24 @@ const seedDemoBillingData = async () => {
     dueDate.setDate(dueDate.getDate() + 15);
 
     if (learner2Sessions.length > 0) {
-      const items = learner2Sessions.map((s) => ({
-        sessionId: s._id,
-        plateNumber: s.plateNumber,
-        entryTime: s.entryTime,
-        exitTime: s.exitTime,
-        fee: s.fee,
-      }));
-      const total2 = items.reduce((sum, i) => sum + (Number(i.fee) || 0), 0);
+      const policies = await PricingPolicy.find({ userType: 'learner', isActive: true }).lean();
+      const policyMap = {};
+      for (const p of policies) policyMap[p.vehicleType] = p;
+
+      const items = learner2Sessions.map((s) => {
+        const policy = policyMap[s.vehicleType || 'motorcycle'] || policyMap['motorcycle'];
+        const amount = (s.fee && s.fee > 0) ? s.fee : calculateSessionFee(s, policy);
+        return {
+          sessionId: s._id,
+          plateNumber: s.plateNumber,
+          entryTime: s.entryTime,
+          exitTime: s.exitTime,
+          amount,
+          rate: amount,
+          vehicleType: s.vehicleType,
+        };
+      });
+      const total2 = items.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 
       await Invoice.create({
         userId: learner2._id.toString(),

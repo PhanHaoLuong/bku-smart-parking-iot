@@ -96,6 +96,7 @@ function ParkingHistoryPage({ role, userId }) {
                 <th>Plate Number</th>
                 <th>Entry Time</th>
                 <th>Exit Time</th>
+                <th>Fee</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -110,6 +111,9 @@ function ParkingHistoryPage({ role, userId }) {
                     </td>
                     <td>{formatDateTime(entry.entryTime)}</td>
                     <td>{formatDateTime(entry.exitTime)}</td>
+                    <td style={{ fontWeight: '500' }}>
+                      {entry.fee ? entry.fee.toLocaleString() + ' VND' : '-'}
+                    </td>
                     <td>
                       <span className={`badge ${status === 'Active' ? 'badge-pending' : 'badge-paid'}`}>
                         {status}

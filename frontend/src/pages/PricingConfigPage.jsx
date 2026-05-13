@@ -154,6 +154,7 @@ function PricingConfigPage() {
                     <option value="faculty">Faculty</option>
                     <option value="staff">Staff</option>
                     <option value="visitor">Visitor</option>
+                    <option value="default">Global Default</option>
                   </select>
                 </label>
                 <label>Vehicle:
@@ -161,6 +162,7 @@ function PricingConfigPage() {
                     <option value="motorcycle">Motorcycle</option>
                     <option value="bicycle">Bicycle</option>
                     <option value="car">Car</option>
+                    <option value="any">Any (Default)</option>
                   </select>
                 </label>
                 <label>Pricing Mode:
@@ -226,19 +228,28 @@ function PricingConfigPage() {
             </tr>
           </thead>
           <tbody>
-            {policies.filter((p) => p.isActive).map((p) => (
-              <tr key={p._id}>
-                <td>{p.userType}</td>
-                <td>{p.vehicleType}</td>
-                <td>{p.pricingMode}</td>
-                <td>{formatRate(p)}{p.discountPercent > 0 ? ` (${p.discountPercent}% off)` : ''}</td>
-                <td><span className={`badge ${p.isActive ? 'active' : ''}`}>{p.isActive ? 'Active' : 'Inactive'}</span></td>
-                <td>
-                  <button className="btn-small" onClick={() => handleEdit(p)}>Edit</button>
-                  <button className="btn-small btn-danger" onClick={() => handleDeactivate(p._id)}>Deactivate</button>
-                </td>
-              </tr>
-            ))}
+            {policies.filter((p) => p.isActive).map((p) => {
+              const isGlobalDefault = p.userType === 'default';
+              return (
+                <tr key={p._id} style={isGlobalDefault ? { background: '#fcfcfc', borderLeft: '4px solid #6c757d' } : {}}>
+                  <td>{isGlobalDefault ? <strong>GLOBAL DEFAULT</strong> : p.userType}</td>
+                  <td>{p.vehicleType === 'any' ? 'ANY' : p.vehicleType}</td>
+                  <td>{p.pricingMode}</td>
+                  <td>{formatRate(p)}{p.discountPercent > 0 ? ` (${p.discountPercent}% off)` : ''}</td>
+                  <td>
+                    <span className={`badge ${p.isActive ? 'active' : ''}`}>
+                      {isGlobalDefault ? 'System' : (p.isActive ? 'Active' : 'Inactive')}
+                    </span>
+                  </td>
+                  <td>
+                    <button className="btn-small" onClick={() => handleEdit(p)}>Edit</button>
+                    {!isGlobalDefault && (
+                      <button className="btn-small btn-danger" onClick={() => handleDeactivate(p._id)}>Deactivate</button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}

@@ -1,6 +1,9 @@
 import Event from '../models/event.model.js';
 import SlotState from '../models/slotstate.model.js';
 import ParkingSession from '../models/parkingsession.model.js';
+import User from '../models/user.model.js';
+import VisitorTransaction from '../models/visitortransaction.model.js';
+import { getApplicablePolicy, calculateSessionFee, calculateVisitorFee } from './billing.util.js';
 
 const EVENT_TYPES = {
   VEHICLE_ENTRY: 'vehicle_entry',
@@ -47,18 +50,12 @@ async function applyParkingSessionProjection(event) {
   if (!event.plateNumber) return;
 
   if (event.eventType === EVENT_TYPES.VEHICLE_ENTRY) {
-    const existingOpenSession = await ParkingSession.findOne({
-      plateNumber: event.plateNumber,
-      parkingLot: event.lotId,
-      status: 'parked',
-    }).lean();
-
-    if (existingOpenSession) {
-      return;
-    }
+    const user = await User.findOne({ plateNumber: event.plateNumber }).lean();
 
     const newSession = await ParkingSession.create({
       plateNumber: event.plateNumber,
+      userId: user ? user._id.toString() : 'visitor',
+      vehicleType: user ? user.vehicleType : 'car', // Default to car for unknown visitors
       entryTime: event.timestamp,
       status: 'parked',
       slotId: event.slotId || undefined,
@@ -96,6 +93,32 @@ async function applyParkingSessionProjection(event) {
       openSession.slotId = event.slotId;
     }
 
+    // --- Billing Logic ---
+    let calculatedFee = 0;
+    if (openSession.userId && openSession.userId !== 'visitor') {
+      const user = await User.findById(openSession.userId).lean();
+      if (user) {
+        const policy = await getApplicablePolicy(user.userType, openSession.vehicleType || user.vehicleType);
+        calculatedFee = calculateSessionFee(openSession, policy);
+      }
+    } else {
+      // Visitor Billing
+      const policy = await getApplicablePolicy('visitor', openSession.vehicleType || 'car');
+      calculatedFee = calculateVisitorFee(openSession.entryTime, event.timestamp, policy);
+
+      // Create Visitor Transaction for immediate payment
+      await VisitorTransaction.create({
+        sessionId: openSession._id,
+        plateNumber: openSession.plateNumber,
+        entryTime: openSession.entryTime,
+        exitTime: event.timestamp,
+        durationHours: Math.max(1, Math.ceil(openSession.duration / 3600)),
+        totalAmount: calculatedFee,
+        status: 'pending',
+      });
+    }
+
+    openSession.fee = calculatedFee;
     await openSession.save();
 
     if (openSession.slotId) {

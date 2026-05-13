@@ -5,12 +5,12 @@ const pricingPolicySchema = new mongoose.Schema(
     userType: {
       type: String,
       required: true,
-      enum: ['learner', 'faculty', 'staff', 'visitor'],
+      enum: ['learner', 'faculty', 'staff', 'visitor', 'default'],
     },
     vehicleType: {
       type: String,
       required: true,
-      enum: ['motorcycle', 'bicycle', 'car'],
+      enum: ['motorcycle', 'bicycle', 'car', 'any'],
       default: 'motorcycle',
     },
     pricingMode: {
@@ -21,11 +21,11 @@ const pricingPolicySchema = new mongoose.Schema(
     },
     daytimeRate: {
       type: Number,
-      default: 2000,
+      default: 4999,
     },
     eveningRate: {
       type: Number,
-      default: 3000,
+      default: 4999,
     },
     firstHourRate: {
       type: Number,
