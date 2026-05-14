@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import { authedFetch } from '../api/authedFetch';
 import '../styles/IoTMonitorPage.css';
@@ -10,65 +10,45 @@ const LOT_OPTIONS = [
 
 const IOT_TYPES = {
   slot: { label: 'Slot Sensor', icon: '📍' },
-  entry_gate: { label: 'Entry Gate', icon: '🚗' },
-  exit_gate: { label: 'Exit Gate', icon: '🚙' },
+  entry: { label: 'Entry Gate', icon: '🚗' },
+  exit: { label: 'Exit Gate', icon: '🚙' },
 };
 
 function IoTMonitorPage() {
   const [selectedLot, setSelectedLot] = useState('lot-1');
   const [iotDevices, setIotDevices] = useState([]);
+  const [gates, setGates] = useState([]);
   const [lotStats, setLotStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [controllingGate, setControllingGate] = useState(null);
 
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch lot stats using query param
       const statsRes = await authedFetch(`/apiv1/monitoring/summary?lotId=${selectedLot}`);
-      if (!statsRes.ok) {
-        throw new Error('Failed to fetch lot stats');
-      }
+      if (!statsRes.ok) throw new Error('Failed to fetch lot stats');
       const statsData = await statsRes.json();
       setLotStats(statsData);
 
-      // Fetch IoT events for this lot to determine device status
       const eventsRes = await authedFetch(`/apiv1/iot/events?lotId=${selectedLot}&limit=100`);
-      let eventsData = [];
-      if (eventsRes.ok) {
-        eventsData = await eventsRes.json();
-      }
+      const eventsData = eventsRes.ok ? await eventsRes.json() : [];
 
-      // Build IoT device list based on slot states - filter by lot
       const slotsRes = await authedFetch(`/apiv1/monitoring/slots?lotId=${selectedLot}`);
-      let slotsData = [];
-      if (slotsRes.ok) {
-        slotsData = await slotsRes.json();
-      }
+      const slotsData = slotsRes.ok ? await slotsRes.json() : [];
 
-      // Filter slots for selected lot and build IoT device list
       const lotSlots = slotsData.filter(s => s.iotId && s.iotId.includes(selectedLot));
       const slotDevices = lotSlots.map(slot => {
-        // Find latest event for this slot by matching slotId
         const latestEvent = eventsData.find(e => e.slotId === slot.slotId);
         const lastUpdateTime = latestEvent?.timestamp || slot.updatedAt || slot.lastChangeTime;
-        const eventAge = lastUpdateTime
-          ? Date.now() - new Date(lastUpdateTime).getTime()
-          : null;
-
-        // Determine status based on event age
+        const eventAge = lastUpdateTime ? Date.now() - new Date(lastUpdateTime).getTime() : null;
         let status = 'unknown';
-        if (!lastUpdateTime) {
-          status = 'offline';
-        } else if (eventAge > 300000) { // > 5 minutes
-          status = 'offline';
-        } else if (eventAge > 120000) { // > 2 minutes
-          status = 'warning';
-        } else {
-          status = 'online';
-        }
+        if (!lastUpdateTime) status = 'offline';
+        else if (eventAge > 300000) status = 'offline';
+        else if (eventAge > 120000) status = 'warning';
+        else status = 'online';
 
         return {
           iotId: slot.iotId,
@@ -82,31 +62,26 @@ function IoTMonitorPage() {
         };
       });
 
-      // Add entry/exit gate placeholders for future implementation
-      const gateDevices = [
-        {
-          iotId: `iot-${selectedLot}-ENTRY`,
-          type: 'entry_gate',
-          typeLabel: IOT_TYPES.entry_gate.label,
-          icon: IOT_TYPES.entry_gate.icon,
-          status: 'unknown',
-          slotId: null,
-          currentState: 'Not implemented',
-          lastUpdate: null,
-          isFuture: true,
-        },
-        {
-          iotId: `iot-${selectedLot}-EXIT`,
-          type: 'exit_gate',
-          typeLabel: IOT_TYPES.exit_gate.label,
-          icon: IOT_TYPES.exit_gate.icon,
-          status: 'unknown',
-          slotId: null,
-          currentState: 'Not implemented',
-          lastUpdate: null,
-          isFuture: true,
-        },
-      ];
+      const gatesRes = await authedFetch(`/apiv1/gates?lotId=${selectedLot}`);
+      const gatesData = gatesRes.ok ? await gatesRes.json() : [];
+      setGates(gatesData);
+
+      const gateDevices = gatesData.map(gate => {
+        const gateType = gate.type === 'entry' ? 'entry' : 'exit';
+        let status = gate.isOnline ? 'online' : 'offline';
+        if (gate.status === 'opening' || gate.status === 'closing') status = 'warning';
+
+        return {
+          gateId: gate.gateId,
+          type: gateType,
+          typeLabel: IOT_TYPES[gateType].label,
+          icon: IOT_TYPES[gateType].icon,
+          status,
+          currentState: gate.status,
+          position: gate.position,
+          lastUpdate: gate.lastCommandAt || gate.updatedAt,
+        };
+      });
 
       setIotDevices([...slotDevices, ...gateDevices]);
     } catch (err) {
@@ -114,7 +89,24 @@ function IoTMonitorPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const handleGateControl = async (gateId, command) => {
+    try {
+      setControllingGate(gateId);
+      const res = await authedFetch(`/apiv1/gates/${gateId}/control`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command }),
+      });
+      if (!res.ok) throw new Error('Failed to control gate');
+      await fetchData();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setControllingGate(null);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -122,15 +114,22 @@ function IoTMonitorPage() {
     return () => clearInterval(interval);
   }, [selectedLot]);
 
-  const selectedLotInfo = LOT_OPTIONS.find(l => l.id === selectedLot);
-
   const slotDevices = iotDevices.filter(d => d.type === 'slot');
   const gateDevices = iotDevices.filter(d => d.type !== 'slot');
+
+  const getGateStatusColor = (status) => {
+    switch (status) {
+      case 'open': return '#10b981';
+      case 'closed': return '#ef4444';
+      case 'opening':
+      case 'closing': return '#f59e0b';
+      default: return '#94a3b8';
+    }
+  };
 
   return (
     <AppLayout title="IoT Monitor" subtitle="Real-time IoT device status">
       <div className="iot-monitor">
-        {/* Lot Selector */}
         <div className="lot-selector">
           <label>Select Lot:</label>
           <div className="lot-buttons">
@@ -149,7 +148,6 @@ function IoTMonitorPage() {
 
         {error && <div className="iot-error">{error}</div>}
 
-        {/* Lot Stats */}
         <div className="iot-stats-grid">
           <div className="iot-stat-card">
             <p>Total</p>
@@ -169,7 +167,6 @@ function IoTMonitorPage() {
           </div>
         </div>
 
-        {/* Slot Grid - Compact */}
         <div className="slot-grid-section">
           <h3>Slot Status</h3>
           {loading ? (
@@ -194,15 +191,50 @@ function IoTMonitorPage() {
           </div>
         </div>
 
-        {/* Gate Devices */}
         <div className="gate-section">
           <h3>Gate Controllers</h3>
           <div className="gate-grid">
             {gateDevices.map(gate => (
-              <div key={gate.iotId} className="gate-card future">
-                <span className="gate-icon">{gate.icon}</span>
-                <span className="gate-name">{gate.typeLabel}</span>
-                <span className="gate-status">Not implemented</span>
+              <div key={gate.gateId} className="gate-card">
+                <div className="gate-header">
+                  <span className="gate-icon">{gate.icon}</span>
+                  <div className="gate-info">
+                    <span className="gate-name">{gate.typeLabel}</span>
+                    <span className="gate-id">{gate.gateId}</span>
+                  </div>
+                </div>
+                <div className="gate-status-row">
+                  <span className="gate-status-label">Status:</span>
+                  <span 
+                    className="gate-status-badge"
+                    style={{ backgroundColor: getGateStatusColor(gate.currentState) }}
+                  >
+                    {gate.currentState}
+                  </span>
+                </div>
+                <div className="gate-position-row">
+                  <span className="gate-status-label">Position:</span>
+                  <span className="gate-position-value">{gate.position}</span>
+                </div>
+                <div className="gate-controls">
+                  <button 
+                    className="gate-btn open"
+                    onClick={() => handleGateControl(gate.gateId, 'open')}
+                    disabled={controllingGate === gate.gateId || gate.currentState === 'open'}
+                  >
+                    Open
+                  </button>
+                  <button 
+                    className="gate-btn close"
+                    onClick={() => handleGateControl(gate.gateId, 'close')}
+                    disabled={controllingGate === gate.gateId || gate.currentState === 'closed'}
+                  >
+                    Close
+                  </button>
+                </div>
+                {controllingGate === gate.gateId && (
+                  <div className="gate-controlling">Controlling...</div>
+                )}
               </div>
             ))}
           </div>

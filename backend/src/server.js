@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -13,6 +13,7 @@ import iotRoute from './routes/iot.route.js';
 import monitoringRoute from './routes/monitoring.route.js';
 import signageRoute from './routes/signage.route.js';
 import demoRoute from './routes/demo.route.js';
+import gateRoute from './routes/gate.route.js';
 
 
 const app = express();
@@ -43,6 +44,7 @@ app.use('/apiv1/billing', billingRoute);
 app.use('/apiv1/monitoring', monitoringRoute);
 app.use('/apiv1/signage', signageRoute);
 app.use('/apiv1/demo', demoRoute);
+app.use('/apiv1/gates', gateRoute);
 
 app.use((req, res) => {
   res.status(404).json({
@@ -55,7 +57,7 @@ const startServer = async () => {
   await seedDemoData();
 
   app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
+    console.log('Server listening on http://localhost:'.concat(PORT));
   });
 };
 

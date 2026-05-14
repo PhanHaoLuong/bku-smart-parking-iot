@@ -8,6 +8,7 @@ import PricingPolicy from '../models/pricingpolicy.model.js';
 import Invoice from '../models/invoice.model.js';
 import VisitorTransaction from '../models/visitortransaction.model.js';
 import AuditLog from '../models/auditlog.model.js';
+import Gate from '../models/gate.model.js';
 import { calculateSessionFee } from './billing.util.js';
 
 const LOTS = [
@@ -512,7 +513,19 @@ const seedDemoBillingData = async () => {
   return { invoices: count, visitorTxns: txnCount, policies: policyCount };
 };
 
+const seedGates = async () => {
+  await Gate.deleteMany({});
+  const gates = [
+    { gateId: "gate-lot1-entry", lotId: "lot-1", type: "entry", status: "closed", position: "down" },
+    { gateId: "gate-lot1-exit", lotId: "lot-1", type: "exit", status: "closed", position: "down" },
+    { gateId: "gate-lot3-entry", lotId: "lot-3", type: "entry", status: "closed", position: "down" },
+    { gateId: "gate-lot3-exit", lotId: "lot-3", type: "exit", status: "closed", position: "down" },
+  ];
+  await Gate.create(gates);
+};
+
 export const seedDemoData = async () => {
   await seedDemoParkingInfrastructure();
   await seedDemoBillingData();
+  await seedGates();
 };

@@ -4,7 +4,6 @@
   gap: 20px;
 }
 
-/* Lot Selector */
 .lot-selector {
   display: flex;
   align-items: center;
@@ -66,7 +65,6 @@
   font-size: 14px;
 }
 
-/* Stats Grid */
 .iot-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -103,7 +101,6 @@
   color: #10b981;
 }
 
-/* Slot Grid - Compact */
 .slot-grid-section {
   background: #fff;
   border-radius: 12px;
@@ -200,7 +197,6 @@
   background: #ef4444;
 }
 
-/* Gate Section */
 .gate-section {
   background: #fff;
   border-radius: 12px;
@@ -216,38 +212,136 @@
 }
 
 .gate-grid {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 .gate-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 12px 20px;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
   background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  opacity: 0.6;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.gate-card:hover {
+  border-color: #cbd5e1;
+}
+
+.gate-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .gate-icon {
-  font-size: 20px;
+  font-size: 28px;
+}
+
+.gate-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .gate-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.gate-id {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.gate-status-row,
+.gate-position-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gate-status-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.gate-status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.gate-position-value {
   font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: #0f172a;
+  text-transform: capitalize;
 }
 
-.gate-status {
-  font-size: 11px;
-  color: #94a3b8;
+.gate-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
 }
 
-/* Loading */
+.gate-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gate-btn.open {
+  background: #10b981;
+  color: #fff;
+}
+
+.gate-btn.open:hover:not(:disabled) {
+  background: #059669;
+}
+
+.gate-btn.close {
+  background: #ef4444;
+  color: #fff;
+}
+
+.gate-btn.close:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.gate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gate-controlling {
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.iot-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
 .iot-loading {
   padding: 20px;
   text-align: center;
@@ -255,7 +349,6 @@
   font-size: 14px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .iot-stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -281,6 +374,6 @@
   }
 
   .gate-grid {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 }
