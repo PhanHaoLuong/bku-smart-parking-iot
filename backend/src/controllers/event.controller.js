@@ -31,7 +31,8 @@ export async function postIotEvents(req, res) {
 export async function getLatestEvents(req, res) {
   try {
     const limit = Math.min(Number(req.query.limit) || 50, 200);
-    const events = await fetchLatestEvents(limit);
+    const { lotId } = req.query;
+    const events = await fetchLatestEvents(limit, lotId);
     return res.status(200).json(events);
   } catch (err) {
     console.error("getLatestEvents error:", err);

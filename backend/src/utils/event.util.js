@@ -168,8 +168,9 @@ export async function ingestEvents(events) {
   return { accepted: insertedEvents.length };
 }
 
-export async function fetchLatestEvents(limit = 50) {
-  return Event.find().sort({ timestamp: -1 }).limit(limit).lean();
+export async function fetchLatestEvents(limit = 50, lotId = null) {
+  const filter = lotId ? { lotId } : {};
+  return Event.find(filter).sort({ timestamp: -1 }).limit(limit).lean();
 }
 
 export async function getEventCountByRange(start, end) {

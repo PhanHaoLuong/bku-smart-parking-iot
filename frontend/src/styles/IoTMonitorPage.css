@@ -1,0 +1,286 @@
+.iot-monitor {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Lot Selector */
+.lot-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lot-selector label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 14px;
+}
+
+.lot-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.lot-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lot-btn:hover {
+  border-color: #cbd5e1;
+}
+
+.lot-btn.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.lot-btn-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.lot-btn.active .lot-btn-number {
+  background: #1d4ed8;
+}
+
+.lot-btn-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+/* Stats Grid */
+.iot-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.iot-stat-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  text-align: center;
+}
+
+.iot-stat-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.iot-stat-card h3 {
+  margin: 4px 0 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.iot-stat-card.occupied h3 {
+  color: #ef4444;
+}
+
+.iot-stat-card.free h3 {
+  color: #10b981;
+}
+
+/* Slot Grid - Compact */
+.slot-grid-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.slot-grid-section h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.slot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.slot-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 40px;
+  border-radius: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s;
+}
+
+.slot-dot:hover {
+  transform: scale(1.05);
+}
+
+.slot-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.slot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+.slot-dot.free {
+  border-color: #10b981;
+}
+
+.slot-dot.free .slot-indicator {
+  background: #10b981;
+}
+
+.slot-dot.occupied {
+  border-color: #ef4444;
+}
+
+.slot-dot.occupied .slot-indicator {
+  background: #ef4444;
+}
+
+.slot-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.slot-legend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.free {
+  background: #10b981;
+}
+
+.legend-dot.occupied {
+  background: #ef4444;
+}
+
+/* Gate Section */
+.gate-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+.gate-section h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.gate-grid {
+  display: flex;
+  gap: 12px;
+}
+
+.gate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  opacity: 0.6;
+}
+
+.gate-icon {
+  font-size: 20px;
+}
+
+.gate-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.gate-status {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Loading */
+.iot-loading {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .iot-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .lot-selector {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lot-buttons {
+    width: 100%;
+  }
+
+  .lot-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .slot-dot {
+    width: 40px;
+    height: 36px;
+  }
+
+  .gate-grid {
+    flex-direction: column;
+  }
+}
