@@ -14,6 +14,7 @@ import LogoutButton from "./components/LogoutButton";
 import DashboardPage from "./pages/DashboardPage";
 import LearnerDashboardPage from "./pages/LearnerDashboardPage";
 import SignagePage from "./pages/SignagePage";
+import IoTMonitorPage from "./pages/IoTMonitorPage";
 
 import { useAuth } from './stores/authStore';
 
@@ -76,6 +77,7 @@ function AppRoutes() {
       <Route path="/billing" element={<ProtectedRoute><InvoiceListPage /></ProtectedRoute>} />
       <Route path="/info" element={<ProtectedRoute><InfoPage /></ProtectedRoute>} />
       <Route path="/staff-dashboard" element={<ProtectedRoute><StaffDashboardPage /></ProtectedRoute>} />
+      <Route path="/iot-monitor" element={<ProtectedRoute><IoTMonitorPage /></ProtectedRoute>} />
       <Route path="/signage" element={<SignagePage />} />
 
       {isFinance && (

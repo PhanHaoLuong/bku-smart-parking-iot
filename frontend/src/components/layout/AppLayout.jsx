@@ -11,8 +11,9 @@ const MENU_ITEMS = {
   ],
   operator: [
     { to: '/staff-dashboard', label: 'Dashboard', icon: '◉' },
+    { to: '/iot-monitor', label: 'IoT Monitor', icon: '◈' },
     { to: '/parking-history', label: 'Parking History', icon: '◷' },
-    { to: '/info', label: 'Personal Info', icon: '◈' },
+    { to: '/info', label: 'Personal Info', icon: '▭' },
   ],
   faculty: [
     { to: '/dashboard', label: 'Dashboard', icon: '◉' },

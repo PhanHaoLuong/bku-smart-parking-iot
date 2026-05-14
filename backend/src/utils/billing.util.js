@@ -59,12 +59,21 @@ export const deactivatePolicy = async (id, userId) => {
 // ─── Fee Calculation ───────────────────────────────────────────────────
 
 export const getApplicablePolicy = async (userType, vehicleType) => {
-  const policy = await PricingPolicy.findOne({
+  let policy = await PricingPolicy.findOne({
     userType,
     vehicleType,
     isActive: true,
     $or: [{ effectiveTo: null }, { effectiveTo: { $gte: new Date() } }],
   }).lean();
+
+  if (!policy) {
+    // Fallback to Global Default
+    policy = await PricingPolicy.findOne({
+      userType: 'default',
+      isActive: true,
+      $or: [{ effectiveTo: null }, { effectiveTo: { $gte: new Date() } }],
+    }).lean();
+  }
 
   return policy;
 };
@@ -92,20 +101,26 @@ export const calculateSessionFee = (sessionOrEntryTime, policyOrExitTime, vehicl
   if (!policy) return 0;
   if (policy.isFree) return 0;
 
-  const entryTime = session.entryTime;
-  const entryHour = new Date(entryTime).getHours();
-
-  let baseRate;
-  if (entryHour >= 6 && entryHour < 18) {
-    baseRate = policy.daytimeRate || 0;
-  } else if (entryHour >= 18 && entryHour < 24) {
-    baseRate = policy.eveningRate || 0;
+  let baseRate = 0;
+  if (policy.pricingMode === 'per-hour') {
+    // Reuse visitor fee logic for per-hour mode
+    return calculateVisitorFee(session.entryTime, session.exitTime || new Date(), policy);
   } else {
-    baseRate = policy.daytimeRate || 0;
-  }
+    // Per-session logic (Daytime/Evening)
+    const entryTime = session.entryTime;
+    const entryHour = new Date(entryTime).getHours();
 
-  const discount = (policy.discountPercent || 0) / 100;
-  return Math.round(baseRate * (1 - discount));
+    if (entryHour >= 6 && entryHour < 18) {
+      baseRate = policy.daytimeRate ?? 4999; // Default fallback price
+    } else if (entryHour >= 18 && entryHour < 24) {
+      baseRate = policy.eveningRate ?? 4999;
+    } else {
+      baseRate = policy.daytimeRate ?? 4999;
+    }
+
+    const discount = (policy.discountPercent || 0) / 100;
+    return Math.round(baseRate * (1 - discount));
+  }
 };
 
 export const calculateVisitorFee = (entryTime, exitTime, policy) => {
@@ -119,17 +134,17 @@ export const calculateVisitorFee = (entryTime, exitTime, policy) => {
     return policy.firstHourRate || 0;
   }
 
-  return (policy.firstHourRate || 0) + (durationHours - 1) * (policy.subsequentHourlyRate || 0);
+  return (policy.firstHourRate ?? 4999) + (durationHours - 1) * (policy.subsequentHourlyRate ?? 3000);
 };
 
 // ─── Invoice Generation ────────────────────────────────────────────────
 
 export const generateInvoices = async (cycleEndDate, performedBy) => {
-  const learners = await User.find({ userType: 'learner' }).lean();
+  const billableUsers = await User.find({ userType: { $in: ['learner', 'faculty', 'staff'] } }).lean();
   const generated = [];
 
   const policyMap = {};
-  const policies = await PricingPolicy.find({ isActive: true, userType: 'learner' }).lean();
+  const policies = await PricingPolicy.find({ isActive: true }).lean();
   for (const p of policies) {
     policyMap[`${p.userType}-${p.vehicleType}`] = p;
   }
@@ -138,13 +153,14 @@ export const generateInvoices = async (cycleEndDate, performedBy) => {
   const cycleStart = new Date(cycleEndDate);
   cycleStart.setDate(cycleStart.getDate() - 30);
 
-  for (const learner of learners) {
-    const vehicleType = learner.vehicleType || 'motorcycle';
-    const policyKey = `learner-${vehicleType}`;
+  for (const user of billableUsers) {
+    const vehicleType = user.vehicleType || 'motorcycle';
+    const policyKey = `${user.userType}-${vehicleType}`;
+    const fallbackKey = `${user.userType}-motorcycle`;
 
     // Find sessions already invoiced for this learner in this period
     const existingInvoices = await Invoice.find({
-      userId: learner._id.toString(),
+      userId: user._id.toString(),
       billingPeriodEnd: { $gte: cycleStart },
     }).lean();
     const invoicedSessionIds = new Set(
@@ -152,7 +168,7 @@ export const generateInvoices = async (cycleEndDate, performedBy) => {
     );
 
     const sessions = await ParkingSession.find({
-      userId: learner._id.toString(),
+      userId: user._id.toString(),
       status: 'exited',
       exitTime: { $gte: cycleStart, $lte: cycleEndDate },
       _id: { $nin: [...invoicedSessionIds] },
@@ -160,15 +176,15 @@ export const generateInvoices = async (cycleEndDate, performedBy) => {
 
     if (sessions.length === 0) continue;
 
-    const policy = policyMap[policyKey] || policyMap['learner-motorcycle'];
-    if (!policy) continue;
+    const policy = policyMap[policyKey] || policyMap[fallbackKey] || policyMap['default-any'];
+    if (!policy && !policyMap['default-any']) continue; // Final safety check
 
     const items = [];
     let totalAmount = 0;
 
     for (const session of sessions) {
-      // Use pre-calculated fee from session, or fallback to calculation
-      const amount = session.fee || calculateSessionFee(session, policy) || 0;
+      // FORCE recalculation if session.fee is 0 or missing, to fix old data
+      const amount = (session.fee && session.fee > 0) ? session.fee : calculateSessionFee(session, policy);
       items.push({
         sessionId: session._id,
         plateNumber: session.plateNumber,
@@ -185,7 +201,7 @@ export const generateInvoices = async (cycleEndDate, performedBy) => {
     dueDate.setDate(dueDate.getDate() + 15);
 
     const invoice = await Invoice.create({
-      userId: learner._id.toString(),
+      userId: user._id.toString(),
       billingPeriodStart: cycleStart,
       billingPeriodEnd: cycleEndDate,
       totalAmount,
@@ -199,8 +215,8 @@ export const generateInvoices = async (cycleEndDate, performedBy) => {
     await safeLogAudit({
       action: 'invoice_generated',
       performedBy,
-      description: `Generated invoice for ${learner.fullName || learner.username}: ${totalAmount.toLocaleString()} VND (${items.length} sessions)`,
-      details: { invoiceId: invoice._id, userId: learner._id, totalAmount, sessionCount: items.length },
+      description: `Generated invoice for ${user.fullName || user.username}: ${totalAmount.toLocaleString()} VND (${items.length} sessions)`,
+      details: { invoiceId: invoice._id, userId: user._id, totalAmount, sessionCount: items.length },
     });
   }
 

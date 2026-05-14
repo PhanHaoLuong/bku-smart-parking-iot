@@ -42,6 +42,13 @@ const userSchema = new mongoose.Schema(
       enum: ['motorcycle', 'bicycle', 'car'],
       default: 'motorcycle',
     },
+    plateNumber: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      uppercase: true,
+    },
   },
   {
     timestamps: true,
