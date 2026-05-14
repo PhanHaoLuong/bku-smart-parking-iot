@@ -36,14 +36,14 @@ function AuditTrailPage() {
     'visitor_paid',
   ];
 
-  if (loading) return <AppLayout title="Audit Trail"><div className="loading">Loading audit trail...</div></AppLayout>;
+  if (loading) return <AppLayout title="Nhật ký kiểm tra"><div className="loading">Đang tải nhật ký kiểm tra...</div></AppLayout>;
 
   return (
-    <AppLayout title="Audit Trail" subtitle="System activity">
+    <AppLayout title="Nhật ký kiểm tra" subtitle="Hoạt động hệ thống">
       <div className="page-header">
-        <h1>Audit Trail</h1>
+        <h1>Nhật ký kiểm tra</h1>
         <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)}>
-          <option value="">All Actions</option>
+          <option value="">Tất cả hành động</option>
           {actionOptions.map((opt) => (
             <option key={opt} value={opt}>{opt.replace(/_/g, ' ')}</option>
           ))}
@@ -53,15 +53,15 @@ function AuditTrailPage() {
       {error && <p className="error">{error}</p>}
 
       {logs.length === 0 ? (
-        <p className="empty-state">No audit entries recorded yet</p>
+        <p className="empty-state">Chưa có mục kiểm tra nào</p>
       ) : (
         <table className="data-table">
           <thead>
             <tr>
-              <th>Timestamp</th>
-              <th>Action</th>
-              <th>Actor</th>
-              <th>Description</th>
+              <th>Thời gian</th>
+              <th>Hành động</th>
+              <th>Người thực hiện</th>
+              <th>Mô tả</th>
               <th></th>
             </tr>
           </thead>

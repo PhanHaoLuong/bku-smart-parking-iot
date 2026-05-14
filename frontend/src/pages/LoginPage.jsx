@@ -15,7 +15,7 @@ function LoginPage({ onLogin }) {
     setError('');
 
     if (!username.trim() || !password.trim()) {
-      setError('Please enter both username and password.');
+      setError('Vui lòng nhập tên đăng nhập và mật khẩu.');
       return;
     }
 
@@ -30,7 +30,7 @@ function LoginPage({ onLogin }) {
 
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Login failed.');
+      setError(err.message || 'Đăng nhập thất bại.');
     } finally {
       setLoading(false);
     }

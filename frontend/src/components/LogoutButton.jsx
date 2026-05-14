@@ -12,7 +12,7 @@ function LogoutButton({ onLogout }) {
     }
   };
 
-  return <button onClick={handleLogout}>Logout</button>;
+  return <button onClick={handleLogout}>Đăng xuất</button>;
 }
 
 export default LogoutButton;

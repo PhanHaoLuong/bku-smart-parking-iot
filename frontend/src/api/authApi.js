@@ -16,7 +16,7 @@ export async function login(username, password) {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || 'Login failed');
+    throw new Error(data.message || 'Đăng nhập thất bại');
   }
 
   return data;
@@ -34,7 +34,7 @@ export async function logout() {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || 'Logout failed');
+    throw new Error(data.message || 'Đăng xuất thất bại');
   }
 
   return data;

@@ -15,8 +15,8 @@ const LOT_GATE_MAP = {
 };
 
 function formatDateTime(value) {
-  if (!value) return 'Still parked';
-  return new Date(value).toLocaleString();
+  if (!value) return 'Đang đỗ';
+  return new Date(value).toLocaleString('vi-VN');
 }
 
 function calculateDuration(entryTime, exitTime) {
@@ -37,7 +37,7 @@ function calculateDuration(entryTime, exitTime) {
 }
 
 function getParkingStatus(exitTime) {
-  return exitTime ? 'Completed' : 'Active';
+  return exitTime ? 'Hoàn thành' : 'Đang đỗ';
 }
 
 function getLotDisplayName(parkingLot) {
@@ -125,8 +125,8 @@ function ParkingHistoryPage({ role, userId }) {
 
   // Determine title/subtitle based on role
   const isOperator = role === 'operator';
-  const pageTitle = isOperator ? 'All Sessions' : 'Parking History';
-  const pageSubtitle = isOperator ? 'View and filter all parking sessions' : 'Track your parking';
+  const pageTitle = isOperator ? 'Tất cả phiên' : 'Lịch sử đỗ xe';
+  const pageSubtitle = isOperator ? 'Xem và lọc tất cả phiên đỗ xe' : 'Theo dõi đỗ xe của bạn';
 
   // Filter bar for operator only
   const filterBar = isOperator && (
@@ -142,11 +142,11 @@ function ParkingHistoryPage({ role, userId }) {
     }}>
       <div style={{ flex: '1', minWidth: '150px' }}>
         <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
-          Plate Number
+          Biển số
         </label>
         <input
           type="text"
-          placeholder="Search plate..."
+          placeholder="Tìm biển số..."
           value={plateFilter}
           onChange={(e) => setPlateFilter(e.target.value)}
           style={{
@@ -160,7 +160,7 @@ function ParkingHistoryPage({ role, userId }) {
       </div>
       <div style={{ flex: '1', minWidth: '150px' }}>
         <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
-          From Date
+          Từ ngày
         </label>
         <input
           type="date"
@@ -177,7 +177,7 @@ function ParkingHistoryPage({ role, userId }) {
       </div>
       <div style={{ flex: '1', minWidth: '150px' }}>
         <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: '500', color: '#333' }}>
-          To Date
+          Đến ngày
         </label>
         <input
           type="date"
@@ -205,7 +205,7 @@ function ParkingHistoryPage({ role, userId }) {
           height: '38px'
         }}
       >
-        Clear Filters
+        Xóa bộ lọc
       </button>
     </div>
   );
@@ -221,48 +221,48 @@ function ParkingHistoryPage({ role, userId }) {
 
       <div className="stats-grid" style={{ marginBottom: '24px' }}>
         <div className="stat-card">
-          <p>Total Records</p>
-          <h3>{isOperator ? `${filteredHistory.length} of ${parkingHistory.length}` : parkingHistory.length}</h3>
-          <span>All parking activities</span>
+          <p>Tổng số bản ghi</p>
+          <h3>{isOperator ? `${filteredHistory.length} trên ${parkingHistory.length}` : parkingHistory.length}</h3>
+          <span>Tất cả hoạt động đỗ xe</span>
         </div>
 
         <div className="stat-card">
-          <p>Active Sessions</p>
+          <p>Phiên đang hoạt động</p>
           <h3>{activeSession}</h3>
-          <span>Currently parked vehicles</span>
+          <span>Phương tiện đang đỗ</span>
         </div>
 
         <div className="stat-card">
-          <p>Completed</p>
+          <p>Hoàn thành</p>
           <h3>{completedRecords}</h3>
-          <span>Finished parking sessions</span>
+          <span>Phiên đỗ xe đã kết thúc</span>
         </div>
       </div>
 
       {loading ? (
-        <div className="loading">Loading parking history...</div>
+        <div className="loading">Đang tải lịch sử đỗ xe...</div>
       ) : displayHistory.length === 0 ? (
         <div className="empty-state card">
           {isOperator && (plateFilter || dateFrom || dateTo)
-            ? 'No sessions found matching your filters.'
-            : 'No parking history available.'}
+            ? 'Không tìm thấy phiên phù hợp với bộ lọc.'
+            : 'Không có lịch sử đỗ xe.'}
         </div>
       ) : (
         <div className="card">
           <div className="card-header">
-            <h2>Recent Parking Records</h2>
-            <p>Plate number, entry time, exit time, and parking status.</p>
+            <h2>Bản ghi đỗ xe gần đây</h2>
+            <p>Biển số, giờ vào, giờ ra, và trạng thái đỗ xe.</p>
           </div>
 
           <table className="data-table">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Plate Number</th>
-                <th>Entry Time</th>
-                <th>Exit Time</th>
-                <th>Fee</th>
-                <th>Status</th>
+                <th>Biển số</th>
+                <th>Giờ vào</th>
+                <th>Giờ ra</th>
+                <th>Phí</th>
+                <th>Trạng thái</th>
               </tr>
             </thead>
             <tbody>
@@ -284,7 +284,7 @@ function ParkingHistoryPage({ role, userId }) {
                       {entry.fee ? entry.fee.toLocaleString() + ' VND' : '-'}
                     </td>
                     <td>
-                      <span className={`badge ${status === 'Active' ? 'badge-pending' : 'badge-paid'}`}>
+                      <span className={`badge ${entry.exitTime ? 'badge-paid' : 'badge-pending'}`}>
                         {status}
                       </span>
                     </td>
@@ -300,7 +300,7 @@ function ParkingHistoryPage({ role, userId }) {
         <div className="modal-overlay" onClick={() => setSelectedEntry(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Session Details</h2>
+              <h2>Chi tiết phiên</h2>
               <button className="modal-close" onClick={() => setSelectedEntry(null)}>
                 ×
               </button>
@@ -308,29 +308,29 @@ function ParkingHistoryPage({ role, userId }) {
 
             <div className="detail-grid">
               <div className="detail-section">
-                <h4>Vehicle</h4>
+                <h4>Phương tiện</h4>
                 <div className="detail-item">
-                  <span className="detail-label">Plate Number</span>
+                  <span className="detail-label">Biển số</span>
                   <span className="detail-value">{selectedEntry.plateNumber}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Vehicle Type</span>
-                  <span className="detail-value">{selectedEntry.vehicleType || 'N/A'}</span>
+                  <span className="detail-label">Loại phương tiện</span>
+                  <span className="detail-value">{selectedEntry.vehicleType || 'Không có'}</span>
                 </div>
               </div>
 
               <div className="detail-section">
-                <h4>Timing</h4>
+                <h4>Thời gian</h4>
                 <div className="detail-item">
-                  <span className="detail-label">Entry Time</span>
+                  <span className="detail-label">Giờ vào</span>
                   <span className="detail-value">{formatDateTime(selectedEntry.entryTime)}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Exit Time</span>
+                  <span className="detail-label">Giờ ra</span>
                   <span className="detail-value">{formatDateTime(selectedEntry.exitTime)}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Duration</span>
+                  <span className="detail-label">Thời lượng</span>
                   <span className="detail-value">
                     {calculateDuration(selectedEntry.entryTime, selectedEntry.exitTime)}
                   </span>
@@ -338,27 +338,27 @@ function ParkingHistoryPage({ role, userId }) {
               </div>
 
               <div className="detail-section">
-                <h4>Location & Status</h4>
+                <h4>Vị trí & Trạng thái</h4>
                 <div className="detail-item">
-                  <span className="detail-label">Parking Lot</span>
+                  <span className="detail-label">Bãi đỗ</span>
                   <span className="detail-value">{getLotDisplayName(selectedEntry.parkingLot)}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Slot ID</span>
-                  <span className="detail-value">{selectedEntry.slotId || 'N/A'}</span>
+                  <span className="detail-label">ID chỗ</span>
+                  <span className="detail-value">{selectedEntry.slotId || 'Không có'}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Status</span>
+                  <span className="detail-label">Trạng thái</span>
                   <span className={`badge ${selectedEntry.exitTime ? 'badge-paid' : 'badge-pending'}`}>
-                    {selectedEntry.exitTime ? 'Completed' : 'Active'}
+                    {selectedEntry.exitTime ? 'Hoàn thành' : 'Đang đỗ'}
                   </span>
                 </div>
               </div>
 
               <div className="detail-section">
-                <h4>Billing</h4>
+                <h4>Thanh toán</h4>
                 <div className="detail-item">
-                  <span className="detail-label">Fee</span>
+                  <span className="detail-label">Phí</span>
                   <span className="detail-value" style={{ fontWeight: '600' }}>
                     {selectedEntry.fee ? selectedEntry.fee.toLocaleString() + ' VND' : '0 VND'}
                   </span>
@@ -366,21 +366,21 @@ function ParkingHistoryPage({ role, userId }) {
               </div>
 
               <div className="detail-section">
-                <h4>Metadata</h4>
+                <h4>Thông tin</h4>
                 <div className="detail-item">
-                  <span className="detail-label">Session ID</span>
+                  <span className="detail-label">ID phiên</span>
                   <span className="detail-value" style={{ fontSize: '12px', wordBreak: 'break-all' }}>
                     {selectedEntry._id}
                   </span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">User ID</span>
-                  <span className="detail-value">{selectedEntry.userId || 'N/A'}</span>
+                  <span className="detail-label">ID người dùng</span>
+                  <span className="detail-value">{selectedEntry.userId || 'Không có'}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Created At</span>
+                  <span className="detail-label">Tạo lúc</span>
                   <span className="detail-value">
-                    {selectedEntry.createdAt ? new Date(selectedEntry.createdAt).toLocaleString() : 'N/A'}
+                    {selectedEntry.createdAt ? new Date(selectedEntry.createdAt).toLocaleString('vi-VN') : 'Không có'}
                   </span>
                 </div>
               </div>

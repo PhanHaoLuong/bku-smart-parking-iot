@@ -112,7 +112,7 @@ function PricingConfigPage() {
   };
 
   const handleDeactivate = async (id) => {
-    if (!window.confirm('Deactivate this policy?')) return;
+    if (!window.confirm('Hủy kích hoạt chính sách này?')) return;
     try {
       const res = await authedFetch(`/apiv1/billing/policies/${id}`, {
         method: 'DELETE',
@@ -125,18 +125,18 @@ function PricingConfigPage() {
   };
 
   const formatRate = (p) => {
-    if (p.isFree) return 'Free';
-    if (p.pricingMode === 'per-hour') return `${(p.firstHourRate || 0).toLocaleString()} /hr`;
+    if (p.isFree) return 'Miễn phí';
+    if (p.pricingMode === 'per-hour') return `${(p.firstHourRate || 0).toLocaleString()} /giờ`;
     return `${(p.daytimeRate || 0).toLocaleString()} / ${(p.eveningRate || 0).toLocaleString()}`;
   };
 
-  if (loading) return <AppLayout title="Pricing Configuration"><div className="loading">Loading policies...</div></AppLayout>;
+  if (loading) return <AppLayout title="Cấu hình giá"><div className="loading">Đang tải chính sách...</div></AppLayout>;
 
   return (
-    <AppLayout title="Pricing Configuration" subtitle="Manage pricing policies">
+    <AppLayout title="Cấu hình giá" subtitle="Quản lý chính sách giá">
       <div style={{ marginBottom: '24px' }}>
         <button className="btn btn-primary" onClick={() => { resetForm(); setShowForm(true); }}>
-          Add New Policy
+          Thêm chính sách mới
         </button>
       </div>
 
@@ -145,56 +145,56 @@ function PricingConfigPage() {
       {showForm && (
         <div className="modal-overlay" onClick={() => setShowForm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>{editingPolicy ? 'Edit Policy' : 'New Policy'}</h2>
+            <h2>{editingPolicy ? 'Sửa chính sách' : 'Chính sách mới'}</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-row">
-                <label>User Type:
+                <label>Loại người dùng:
                   <select value={formData.userType} onChange={(e) => setFormData({ ...formData, userType: e.target.value })}>
-                    <option value="learner">Learner</option>
-                    <option value="faculty">Faculty</option>
-                    <option value="staff">Staff</option>
-                    <option value="visitor">Visitor</option>
-                    <option value="default">Global Default</option>
+                    <option value="learner">Học viên</option>
+                    <option value="faculty">Giảng viên</option>
+                    <option value="staff">Nhân viên</option>
+                    <option value="visitor">Khách</option>
+                    <option value="default">Mặc định</option>
                   </select>
                 </label>
-                <label>Vehicle:
+                <label>Phương tiện:
                   <select value={formData.vehicleType} onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}>
-                    <option value="motorcycle">Motorcycle</option>
-                    <option value="bicycle">Bicycle</option>
-                    <option value="car">Car</option>
-                    <option value="any">Any (Default)</option>
+                    <option value="motorcycle">Xe máy</option>
+                    <option value="bicycle">Xe đạp</option>
+                    <option value="car">Ô tô</option>
+                    <option value="any">Bất kỳ (Mặc định)</option>
                   </select>
                 </label>
-                <label>Pricing Mode:
+                <label>Chế độ tính giá:
                   <select value={formData.pricingMode} onChange={(e) => setFormData({ ...formData, pricingMode: e.target.value })}>
-                    <option value="per-session">Per Session</option>
-                    <option value="per-hour">Per Hour</option>
+                    <option value="per-session">Theo phiên</option>
+                    <option value="per-hour">Theo giờ</option>
                   </select>
                 </label>
               </div>
 
               {formData.pricingMode === 'per-session' ? (
                 <div className="form-row">
-                  <label>Daytime Rate (VND):
+                  <label>Giá ban ngày (VND):
                     <input type="number" value={formData.daytimeRate} onChange={(e) => setFormData({ ...formData, daytimeRate: Number(e.target.value) })} />
                   </label>
-                  <label>Evening Rate (VND):
+                  <label>Giá ban đêm (VND):
                     <input type="number" value={formData.eveningRate} onChange={(e) => setFormData({ ...formData, eveningRate: Number(e.target.value) })} />
                   </label>
-                  <label>Discount %:
+                  <label>Giảm giá %:
                     <input type="number" min="0" max="100" value={formData.discountPercent} onChange={(e) => setFormData({ ...formData, discountPercent: Number(e.target.value) })} />
                   </label>
                   <label>
                     <input type="checkbox" checked={formData.isFree} onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })} />
-                    Free
+                    Miễn phí
                   </label>
                 </div>
               ) : (
                 <div className="form-row">
-                  <label>First Hour (VND):
+                  <label>Giá giờ đầu (VND):
                     <input type="number" value={formData.firstHourRate} onChange={(e) => setFormData({ ...formData, firstHourRate: Number(e.target.value) })} />
                   </label>
-                  <label>Subsequent Hour (VND):
+                  <label>Giá giờ tiếp theo (VND):
                     <input type="number" value={formData.subsequentHourlyRate} onChange={(e) => setFormData({ ...formData, subsequentHourlyRate: Number(e.target.value) })} />
                   </label>
                 </div>
@@ -202,10 +202,10 @@ function PricingConfigPage() {
 
               <div className="form-actions">
                 <button type="submit" className="btn-primary" disabled={saving}>
-                  {saving ? 'Saving...' : 'Save'}
+                  {saving ? 'Đang lưu...' : 'Lưu'}
                 </button>
                 <button type="button" className="btn-secondary" onClick={() => { setShowForm(false); resetForm(); }}>
-                  Cancel
+                  Hủy
                 </button>
               </div>
             </form>
@@ -214,17 +214,17 @@ function PricingConfigPage() {
       )}
 
       {policies.length === 0 ? (
-        <p className="empty-state">No policies configured. Click "Add New Policy" to start.</p>
+        <p className="empty-state">Chưa có chính sách nào. Nhấn "Thêm chính sách mới" để bắt đầu.</p>
       ) : (
         <table className="data-table">
           <thead>
             <tr>
-              <th>User Type</th>
-              <th>Vehicle</th>
-              <th>Mode</th>
-              <th>Day / Evening / Discount</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Loại người dùng</th>
+              <th>Phương tiện</th>
+              <th>Chế độ</th>
+              <th>Ban ngày / Ban đêm / Giảm giá</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -232,19 +232,19 @@ function PricingConfigPage() {
               const isGlobalDefault = p.userType === 'default';
               return (
                 <tr key={p._id} style={isGlobalDefault ? { background: '#fcfcfc', borderLeft: '4px solid #6c757d' } : {}}>
-                  <td>{isGlobalDefault ? <strong>GLOBAL DEFAULT</strong> : p.userType}</td>
-                  <td>{p.vehicleType === 'any' ? 'ANY' : p.vehicleType}</td>
-                  <td>{p.pricingMode}</td>
+                  <td>{isGlobalDefault ? <strong>MẶC ĐỊNH HỆ THỐNG</strong> : p.userType}</td>
+                  <td>{p.vehicleType === 'any' ? 'BẤT KỲ' : p.vehicleType}</td>
+                  <td>{p.pricingMode === 'per-session' ? 'Theo phiên' : 'Theo giờ'}</td>
                   <td>{formatRate(p)}{p.discountPercent > 0 ? ` (${p.discountPercent}% off)` : ''}</td>
                   <td>
                     <span className={`badge ${p.isActive ? 'active' : ''}`}>
-                      {isGlobalDefault ? 'System' : (p.isActive ? 'Active' : 'Inactive')}
+                      {isGlobalDefault ? 'Hệ thống' : (p.isActive ? 'Hoạt động' : 'Không hoạt động')}
                     </span>
                   </td>
                   <td>
-                    <button className="btn-small" onClick={() => handleEdit(p)}>Edit</button>
+                    <button className="btn-small" onClick={() => handleEdit(p)}>Sửa</button>
                     {!isGlobalDefault && (
-                      <button className="btn-small btn-danger" onClick={() => handleDeactivate(p._id)}>Deactivate</button>
+                      <button className="btn-small btn-danger" onClick={() => handleDeactivate(p._id)}>Hủy kích hoạt</button>
                     )}
                   </td>
                 </tr>

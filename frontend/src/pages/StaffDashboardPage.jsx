@@ -50,47 +50,47 @@ function StaffDashboardPage() {
       {error && <div className="error">{error}</div>}
 
       {loading ? (
-        <div className="loading">Loading dashboard...</div>
+        <div className="loading">Đang tải bảng điều khiển...</div>
       ) : (
         <>
           <div className="stats-grid">
             <div className="stat-card">
-              <p>Total Slots</p>
+              <p>Tổng số chỗ</p>
               <h3>{summary?.totalSlots || 0}</h3>
-              <span>Parking spaces</span>
+              <span>Chỗ đỗ xe</span>
             </div>
 
             <div className="stat-card">
-              <p>Occupied</p>
+              <p>Đã đỗ</p>
               <h3>{summary?.occupiedSlots || 0}</h3>
-              <span>{summary?.occupancyRate || 0}% occupied</span>
+              <span>{summary?.occupancyRate || 0}% đã sử dụng</span>
             </div>
 
             <div className="stat-card">
-              <p>Free</p>
+              <p>Trống</p>
               <h3 style={{ color: '#10b981' }}>{summary?.freeSlots || 0}</h3>
-              <span>Available</span>
+              <span>Còn trống</span>
             </div>
 
             <div className="stat-card">
-              <p>Active Vehicles</p>
+              <p>Phương tiện hoạt động</p>
               <h3>{summary?.activeSessions || 0}</h3>
-              <span>Vehicles currently parked</span>
+              <span>Phương tiện đang đỗ</span>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
             <div className="card">
               <div className="card-header">
-                <h2>Parking Slots</h2>
-                <p>Current slot status</p>
+                <h2>Chỗ đỗ xe</h2>
+                <p>Tình trạng chỗ hiện tại</p>
               </div>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Slot</th>
-                    <th>Status</th>
-                    <th>Plate</th>
+                    <th>Chỗ</th>
+                    <th>Trạng thái</th>
+                    <th>Biển số</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -111,15 +111,15 @@ function StaffDashboardPage() {
 
             <div className="card">
               <div className="card-header">
-                <h2>Active Vehicles</h2>
-                <p>Vehicles currently parked</p>
+                <h2>Phương tiện hoạt động</h2>
+                <p>Phương tiện đang đỗ</p>
               </div>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Plate</th>
-                    <th>Entry Time</th>
-                    <th>Slot</th>
+                    <th>Biển số</th>
+                    <th>Giờ vào</th>
+                    <th>Chỗ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,19 +137,19 @@ function StaffDashboardPage() {
 
           <div className="card" style={{ marginTop: '24px' }}>
             <div className="card-header">
-              <h2>Today's Activity</h2>
+              <h2>Hoạt động hôm nay</h2>
             </div>
             <div style={{ display: 'flex', gap: '32px', padding: '16px 0' }}>
               <div>
-                <p style={{ color: '#6b7280', margin: 0, fontSize: '13px' }}>Entries</p>
+                <p style={{ color: '#6b7280', margin: 0, fontSize: '13px' }}>Lượt vào</p>
                 <h3 style={{ margin: '4px 0 0' }}>{summary?.entriesToday || 0}</h3>
               </div>
               <div>
-                <p style={{ color: '#6b7280', margin: 0, fontSize: '13px' }}>Exits</p>
+                <p style={{ color: '#6b7280', margin: 0, fontSize: '13px' }}>Lượt ra</p>
                 <h3 style={{ margin: '4px 0 0' }}>{summary?.exitsToday || 0}</h3>
               </div>
               <div>
-                <p style={{ color: '#6b7280', margin: 0, fontSize: '13px' }}>Last Updated</p>
+                <p style={{ color: '#6b7280', margin: 0, fontSize: '13px' }}>Cập nhật lần cuối</p>
                 <p style={{ margin: '4px 0 0', fontSize: '14px' }}>{formatDate(summary?.lastUpdated)}</p>
               </div>
             </div>
@@ -160,7 +160,7 @@ function StaffDashboardPage() {
   );
 
   return (
-    <AppLayout title="Staff Dashboard" subtitle="Monitor parking">
+    <AppLayout title="Bảng điều khiển nhân viên" subtitle="Giám sát bãi đỗ">
       {content}
     </AppLayout>
   );

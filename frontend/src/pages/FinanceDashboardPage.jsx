@@ -47,54 +47,54 @@ function FinanceDashboardPage() {
         <div className="error">
           {error}
           <button className="btn btn-secondary" onClick={fetchData} style={{ marginLeft: '12px' }}>
-            Retry
+            Thử lại
           </button>
         </div>
       )}
 
       {loading ? (
-        <div className="loading">Loading dashboard...</div>
+        <div className="loading">Đang tải bảng tài chính...</div>
       ) : (
         <>
           <div className="stats-grid">
             <div className="stat-card">
-              <p>Collected Revenue</p>
+              <p>Doanh thu</p>
               <h3>{formatVND(summary?.collectedRevenue)}</h3>
-              <span>Paid invoices + visitor</span>
+              <span>Hóa đơn đã thanh toán + khách</span>
             </div>
             <div className="stat-card">
-              <p>Outstanding</p>
+              <p>Chưa thu</p>
               <h3 style={{ color: '#f59e0b' }}>{formatVND(summary?.outstandingRevenue)}</h3>
-              <span>Pending payments</span>
+              <span>Thanh toán đang chờ</span>
             </div>
             <div className="stat-card">
-              <p>Total Revenue</p>
+              <p>Tổng doanh thu</p>
               <h3>{formatVND(summary?.totalRevenue)}</h3>
-              <span>All time</span>
+              <span>Tất cả thời gian</span>
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '24px' }}>
             <div className="card">
               <div className="card-header">
-                <h2>Revenue Breakdown</h2>
+                <h2>Chi tiết doanh thu</h2>
               </div>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Source</th>
-                    <th>Collected</th>
-                    <th>Outstanding</th>
+                    <th>Nguồn</th>
+                    <th>Đã thu</th>
+                    <th>Chưa thu</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Learner Invoices</td>
+                    <td>Hóa đơn học viên</td>
                     <td>{formatVND(summary?.learnerRevenue?.paid)}</td>
                     <td>{formatVND(summary?.learnerRevenue?.outstanding)}</td>
                   </tr>
                   <tr>
-                    <td>Visitor Payments</td>
+                    <td>Thanh toán khách</td>
                     <td>{formatVND(summary?.visitorRevenue?.paid)}</td>
                     <td>{formatVND(summary?.visitorRevenue?.pending)}</td>
                   </tr>
@@ -104,15 +104,15 @@ function FinanceDashboardPage() {
 
             <div className="card">
               <div className="card-header">
-                <h2>Outstanding Balances</h2>
+                <h2>Hóa đơn chưa thanh toán</h2>
               </div>
               {outstanding?.learners?.length > 0 ? (
                 <table className="data-table">
                   <thead>
                     <tr>
-                      <th>Learner</th>
-                      <th>Total Debt</th>
-                      <th>Invoices</th>
+                      <th>Người dùng</th>
+                      <th>Tổng</th>
+                      <th>Hóa đơn</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -126,22 +126,22 @@ function FinanceDashboardPage() {
                   </tbody>
                 </table>
               ) : (
-                <div className="empty-state">No outstanding balances</div>
+                <div className="empty-state">Không có công nợ</div>
               )}
             </div>
           </div>
 
           <div className="card" style={{ marginTop: '24px' }}>
             <div className="card-header">
-              <h2>Recent Activity</h2>
+              <h2>Hoạt động gần đây</h2>
             </div>
             {auditLog?.length > 0 ? (
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Action</th>
-                    <th>Description</th>
+                    <th>Thời gian</th>
+                    <th>Hành động</th>
+                    <th>Mô tả</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -157,14 +157,14 @@ function FinanceDashboardPage() {
                 </tbody>
               </table>
             ) : (
-              <div className="empty-state">No audit entries</div>
+              <div className="empty-state">Không có mục kiểm tra</div>
             )}
           </div>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-            <Link to="/finance/pricing" className="btn btn-secondary">Configure Pricing</Link>
-            <Link to="/finance/invoices" className="btn btn-secondary">Manage Invoices</Link>
-            <Link to="/finance/audit" className="btn btn-secondary">Audit Trail</Link>
+            <Link to="/finance/pricing" className="btn btn-secondary">Cấu hình giá</Link>
+            <Link to="/finance/invoices" className="btn btn-secondary">Quản lý hóa đơn</Link>
+            <Link to="/finance/audit" className="btn btn-secondary">Nhật ký kiểm tra</Link>
           </div>
         </>
       )}
@@ -172,7 +172,7 @@ function FinanceDashboardPage() {
   );
 
   return (
-    <AppLayout title="Finance Dashboard" subtitle="Revenue overview">
+    <AppLayout title="Bảng tài chính" subtitle="Tổng quan doanh thu">
       {content}
     </AppLayout>
   );

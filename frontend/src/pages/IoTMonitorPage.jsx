@@ -128,10 +128,10 @@ function IoTMonitorPage() {
   };
 
   return (
-    <AppLayout title="IoT Monitor" subtitle="Real-time IoT device status">
+    <AppLayout title="Giám sát IoT" subtitle="Trạng thái thiết bị IoT thời gian thực">
       <div className="iot-monitor">
         <div className="lot-selector">
-          <label>Select Lot:</label>
+          <label>Chọn bãi đỗ:</label>
           <div className="lot-buttons">
             {LOT_OPTIONS.map(lot => (
               <button
@@ -150,27 +150,27 @@ function IoTMonitorPage() {
 
         <div className="iot-stats-grid">
           <div className="iot-stat-card">
-            <p>Total</p>
+            <p>Tổng</p>
             <h3>{lotStats?.totalSlots || 0}</h3>
           </div>
           <div className="iot-stat-card occupied">
-            <p>Occupied</p>
+            <p>Đã đỗ</p>
             <h3>{lotStats?.occupiedSlots || 0}</h3>
           </div>
           <div className="iot-stat-card free">
-            <p>Free</p>
+            <p>Trống</p>
             <h3>{lotStats?.freeSlots || 0}</h3>
           </div>
           <div className="iot-stat-card">
-            <p>Rate</p>
+            <p>Tỷ lệ</p>
             <h3>{lotStats?.occupancyRate || 0}%</h3>
           </div>
         </div>
 
         <div className="slot-grid-section">
-          <h3>Slot Status</h3>
+          <h3>Tình trạng chỗ đỗ</h3>
           {loading ? (
-            <div className="iot-loading">Loading...</div>
+            <div className="iot-loading">Đang tải...</div>
           ) : (
             <div className="slot-grid">
               {slotDevices.map(slot => (
@@ -186,13 +186,13 @@ function IoTMonitorPage() {
             </div>
           )}
           <div className="slot-legend">
-            <span><span className="legend-dot free"></span> Free</span>
-            <span><span className="legend-dot occupied"></span> Occupied</span>
+            <span><span className="legend-dot free"></span> Trống</span>
+            <span><span className="legend-dot occupied"></span> Đã đỗ</span>
           </div>
         </div>
 
         <div className="gate-section">
-          <h3>Gate Controllers</h3>
+          <h3>Điều khiển cổng</h3>
           <div className="gate-grid">
             {gateDevices.map(gate => (
               <div key={gate.gateId} className="gate-card">
@@ -204,7 +204,7 @@ function IoTMonitorPage() {
                   </div>
                 </div>
                 <div className="gate-status-row">
-                  <span className="gate-status-label">Status:</span>
+                  <span className="gate-status-label">Trạng thái:</span>
                   <span 
                     className="gate-status-badge"
                     style={{ backgroundColor: getGateStatusColor(gate.currentState) }}
@@ -213,27 +213,27 @@ function IoTMonitorPage() {
                   </span>
                 </div>
                 <div className="gate-position-row">
-                  <span className="gate-status-label">Position:</span>
+                  <span className="gate-status-label">Vị trí:</span>
                   <span className="gate-position-value">{gate.position}</span>
                 </div>
                 <div className="gate-controls">
-                  <button 
+                  <button
                     className="gate-btn open"
                     onClick={() => handleGateControl(gate.gateId, 'open')}
                     disabled={controllingGate === gate.gateId || gate.currentState === 'open'}
                   >
-                    Open
+                    Mở
                   </button>
-                  <button 
+                  <button
                     className="gate-btn close"
                     onClick={() => handleGateControl(gate.gateId, 'close')}
                     disabled={controllingGate === gate.gateId || gate.currentState === 'closed'}
                   >
-                    Close
+                    Đóng
                   </button>
                 </div>
                 {controllingGate === gate.gateId && (
-                  <div className="gate-controlling">Controlling...</div>
+                  <div className="gate-controlling">Đang điều khiển...</div>
                 )}
               </div>
             ))}

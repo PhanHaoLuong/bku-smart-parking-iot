@@ -7,29 +7,29 @@ function DashboardPage({ role }) {
     return(
         <div className="dashboard-page">
             <Link key="/parking-history" to="/parking-history">
-                Parking History
+                Lịch sử đỗ xe
             </Link>
 
             <Link key="/info" to="/info">
-                Personal Info
+                Thông tin cá nhân
             </Link>
 
             {isOperator && (
                 <Link key="/staff-dashboard" to="/staff-dashboard">
-                    Staff Dashboard
+                    Bảng điều khiển
                 </Link>
             )}
 
             {isFinance && (
                 <>
                     <Link key="/finance-dashboard" to="/finance-dashboard">
-                        Finance Dashboard
+                        Bảng tài chính
                     </Link>
                     <Link key="/finance/pricing" to="/finance/pricing">
-                        Pricing Config
+                        Cấu hình giá
                     </Link>
                     <Link key="/finance/invoices" to="/finance/invoices">
-                        Invoices
+                        Hóa đơn
                     </Link>
                 </>
             )}

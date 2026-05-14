@@ -7,7 +7,7 @@ function InfoItem({ label, value }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #e1e5eb' }}>
       <span style={{ color: '#6b7280' }}>{label}</span>
-      <strong style={{ color: '#1a1a2e' }}>{value || 'Not available'}</strong>
+      <strong style={{ color: '#1a1a2e' }}>{value || 'Không có'}</strong>
     </div>
   );
 }
@@ -44,9 +44,9 @@ function InfoPage() {
       {error && <div className="error">Error: {error}</div>}
 
       {loading ? (
-        <div className="loading">Loading personal information...</div>
+        <div className="loading">Đang tải thông tin cá nhân...</div>
       ) : !userInfo ? (
-        <div className="empty-state">No user information available.</div>
+        <div className="empty-state">Không có thông tin người dùng.</div>
       ) : (
         <>
           <div className="card" style={{ marginBottom: '24px' }}>
@@ -66,8 +66,8 @@ function InfoPage() {
                 {userInfo.fullName?.charAt(0) || 'U'}
               </div>
               <div>
-                <h2 style={{ margin: 0, fontSize: '20px' }}>{userInfo.fullName || 'Learner User'}</h2>
-                <p style={{ margin: '4px 0 0', color: '#6b7280' }}>{userInfo.email || 'No email'}</p>
+                <h2 style={{ margin: 0, fontSize: '20px' }}>{userInfo.fullName || 'Người dùng học viên'}</h2>
+                <p style={{ margin: '4px 0 0', color: '#6b7280' }}>{userInfo.email || 'Không có email'}</p>
                 <span className="badge badge-active" style={{ marginTop: '8px' }}>{userInfo.role || 'learner'}</span>
               </div>
             </div>
@@ -75,13 +75,13 @@ function InfoPage() {
 
           <div className="card">
             <div className="card-header">
-              <h2>Account Details</h2>
+              <h2>Chi tiết tài khoản</h2>
             </div>
             <div style={{ marginTop: '8px' }}>
-              <InfoItem label="Username" value={userInfo.username} />
-              <InfoItem label="Full Name" value={userInfo.fullName} />
+              <InfoItem label="Tên đăng nhập" value={userInfo.username} />
+              <InfoItem label="Họ và tên" value={userInfo.fullName} />
               <InfoItem label="Email" value={userInfo.email} />
-              <InfoItem label="Role" value={userInfo.role} />
+              <InfoItem label="Vai trò" value={userInfo.role} />
             </div>
           </div>
         </>
@@ -90,7 +90,7 @@ function InfoPage() {
   );
 
   return (
-    <AppLayout title="Personal Information" subtitle="View your profile">
+    <AppLayout title="Thông tin cá nhân" subtitle="Xem hồ sơ của bạn">
       {content}
     </AppLayout>
   );

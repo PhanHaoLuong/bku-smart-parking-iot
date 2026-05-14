@@ -56,27 +56,22 @@ function LearnerDashboardPage() {
 
   if (loading) {
     return (
-      <AppLayout title="Dashboard">
+      <AppLayout title="Bảng điều khiển">
         <div className="dashboard-loading">
           <div className="loading-spinner"></div>
-          <p>Loading your dashboard...</p>
+          <p>Đang tải bảng điều khiển của bạn...</p>
         </div>
       </AppLayout>
     );
   }
 
   return (
-    <AppLayout title="Dashboard" subtitle="Welcome back">
+    <AppLayout title="Bảng điều khiển" subtitle="Chào mừng trở lại">
       {/* Hero Section */}
       <section className="hero-section">
         <div className="hero-content">
-          <span className="hero-greeting">Hello, {username || 'Learner'}! 👋</span>
-          <h1 className="hero-title">Ready to park?</h1>
-          <p className="hero-subtitle">
-            {stats?.activeSession
-              ? `Your vehicle (${stats.activePlate}) is parked`
-              : 'No active parking session'}
-          </p>
+          <span className="hero-greeting">Xin chào, {username || 'Học viên'}! 👋</span>
+          <h1 className="hero-title">Sẵn sàng đỗ xe?</h1>
         </div>
         <div className="hero-illustration">
           <div className="parking-icon">
@@ -89,18 +84,6 @@ function LearnerDashboardPage() {
 
       {/* Stats - Display Only (no hover) */}
       <div className="dashboard-stats">
-        <div className={`stat-tile ${stats?.activeSession ? 'active' : ''}`}>
-          <div className="stat-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M8 17v-3a2 2 0 012-2h4a2 2 0 012 2v3"/>
-            </svg>
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats?.activeSession ? 'Active' : 'None'}</span>
-            <span className="stat-label">{stats?.activePlate || 'No vehicle'}</span>
-          </div>
-        </div>
-
         <div className="stat-tile">
           <div className="stat-icon blue">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -110,7 +93,7 @@ function LearnerDashboardPage() {
           </div>
           <div className="stat-info">
             <span className="stat-value">{stats?.totalSessions || 0}</span>
-            <span className="stat-label">Total Sessions</span>
+            <span className="stat-label">Tổng số phiên</span>
           </div>
         </div>
 
@@ -123,7 +106,7 @@ function LearnerDashboardPage() {
           </div>
           <div className="stat-info">
             <span className="stat-value">{stats?.completedSessions || 0}</span>
-            <span className="stat-label">Completed</span>
+            <span className="stat-label">Đã hoàn thành</span>
           </div>
         </div>
 
@@ -134,15 +117,15 @@ function LearnerDashboardPage() {
             </svg>
           </div>
           <div className="stat-info">
-            <span className="stat-value">{stats?.pendingPayments || 0}</span>
-            <span className="stat-label">{formatVND(stats?.totalDebt)}</span>
+            <span className="stat-value">{formatVND(stats?.totalDebt)}</span>
+            <span className="stat-label">Tổng hóa đơn</span>
           </div>
         </div>
       </div>
 
       {/* Quick Actions - Navigation Cards Only */}
       <section className="actions-section">
-        <h2 className="section-title">Navigate</h2>
+        <h2 className="section-title">Điều hướng</h2>
         <div className="actions-grid">
           <Link to="/parking-history" className="action-card">
             <div className="action-icon">
@@ -152,8 +135,8 @@ function LearnerDashboardPage() {
               </svg>
             </div>
             <div className="action-content">
-              <h3>Parking History</h3>
-              <p>View your past parking sessions</p>
+              <h3>Lịch sử đỗ xe</h3>
+              <p>Xem các phiên đỗ xe trước đó</p>
             </div>
             <span className="action-arrow">→</span>
           </Link>
@@ -166,8 +149,8 @@ function LearnerDashboardPage() {
               </svg>
             </div>
             <div className="action-content">
-              <h3>My Profile</h3>
-              <p>View your account details</p>
+              <h3>Hồ sơ của tôi</h3>
+              <p>Xem thông tin tài khoản</p>
             </div>
             <span className="action-arrow">→</span>
           </Link>

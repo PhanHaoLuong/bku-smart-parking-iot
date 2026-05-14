@@ -36,7 +36,7 @@ function InvoiceListPage() {
   useEffect(() => { fetchInvoices(); }, [statusFilter]);
 
   const handleGenerate = async () => {
-    if (!window.confirm('Generate invoices for current billing cycle?')) return;
+    if (!window.confirm('Tạo hóa đơn cho chu kỳ thanh toán hiện tại?')) return;
     setGenerating(true);
     try {
       const res = await authedJsonFetch('/apiv1/billing/invoices/generate', {
@@ -45,7 +45,7 @@ function InvoiceListPage() {
       });
       if (!res.ok) throw new Error('Failed to generate invoices');
       const result = await res.json();
-      alert(`Generated ${result.generatedCount} invoices`);
+      alert(`Đã tạo ${result.generatedCount} hóa đơn`);
       await fetchInvoices();
     } catch (err) {
       setError(err.message);
@@ -56,8 +56,8 @@ function InvoiceListPage() {
 
   const handleSettleInvoice = async (invoice) => {
     const confirmMessage = isFinance
-      ? 'Mark this invoice as paid?'
-      : `Pay ${formatVND(invoice.totalAmount)} now?`;
+      ? 'Đánh dấu hóa đơn này là đã thanh toán?'
+      : `Thanh toán ${formatVND(invoice.totalAmount)} ngay?`;
 
     if (!window.confirm(confirmMessage)) return;
 
@@ -80,25 +80,25 @@ function InvoiceListPage() {
   const paidInvoices = invoices.filter((inv) => inv.status === 'paid');
   const paidAmount = paidInvoices.reduce((sum, inv) => sum + (inv.paidAmount || inv.totalAmount || 0), 0);
 
-  if (loading) return <AppLayout title="Invoices"><div className="loading">Loading invoices...</div></AppLayout>;
+  if (loading) return <AppLayout title="Hóa đơn"><div className="loading">Đang tải hóa đơn...</div></AppLayout>;
 
   return (
-    <AppLayout title="Invoices" subtitle="Manage invoices">
+    <AppLayout title="Hóa đơn" subtitle="Quản lý hóa đơn">
       <div className="page-header">
         <div>
-          <h1>{isFinance ? 'Invoices' : 'My Billing'}</h1>
-          <p>{isFinance ? 'Manage billing cycles and settle invoices.' : 'Your bill is calculated from completed parking sessions in parking history.'}</p>
+          <h1>{isFinance ? 'Hóa đơn' : 'Hóa đơn của tôi'}</h1>
+          <p>{isFinance ? 'Quản lý chu kỳ thanh toán và thanh toán hóa đơn.' : 'Hóa đơn được tính từ các phiên đỗ xe đã hoàn thành trong lịch sử đỗ xe.'}</p>
         </div>
         <div className="header-actions">
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Overdue</option>
+            <option value="">Tất cả trạng thái</option>
+            <option value="pending">Chưa thanh toán</option>
+            <option value="paid">Đã thanh toán</option>
+            <option value="overdue">Quá hạn</option>
           </select>
           {isFinance && (
             <button className="btn-primary" onClick={handleGenerate} disabled={generating}>
-              {generating ? 'Generating...' : 'Generate Invoices'}
+              {generating ? 'Đang tạo...' : 'Tạo hóa đơn'}
             </button>
           )}
         </div>
@@ -106,15 +106,15 @@ function InvoiceListPage() {
 
       <div className="dashboard-cards">
         <div className="dashboard-card">
-          <h3>{isFinance ? 'Total Billed' : 'Current Bill'}</h3>
+          <h3>{isFinance ? 'Tổng tiền' : 'Hóa đơn hiện tại'}</h3>
           <p className="card-value">{formatVND(totalBilled)}</p>
         </div>
         <div className="dashboard-card">
-          <h3>{isFinance ? 'Open Invoices' : 'Outstanding Balance'}</h3>
+          <h3>{isFinance ? 'Hóa đơn chưa thanh toán' : 'Số dư chưa thanh toán'}</h3>
           <p className="card-value warning">{formatVND(outstandingAmount)}</p>
         </div>
         <div className="dashboard-card">
-          <h3>{isFinance ? 'Settled Invoices' : 'Paid Amount'}</h3>
+          <h3>{isFinance ? 'Hóa đơn đã thanh toán' : 'Đã thanh toán'}</h3>
           <p className="card-value">{formatVND(paidAmount)}</p>
         </div>
       </div>
@@ -123,30 +123,30 @@ function InvoiceListPage() {
 
       {isEndUser && (
         <div className="card">
-          <h3>How payment works</h3>
+          <h3>Cách thanh toán</h3>
           <p>
-            {username ? `${username}, your bill is generated ` : 'Your bill is generated '}
-            from completed parking sessions and shows the exact session breakdown.
-            Use the billing page to review the amount due, then pay the open invoice directly.
+            {username ? `${username}, hóa đơn của bạn được tạo ` : 'Hóa đơn của bạn được tạo '}
+            từ các phiên đỗ xe đã hoàn thành và hiển thị chi tiết từng phiên.
+            Sử dụng trang thanh toán để xem số tiền cần trả, sau đó thanh toán hóa đơn đang mở.
           </p>
           <p>
-            <Link to="/parking-history">View parking history</Link> to compare the sessions that fed the bill.
+            <Link to="/parking-history">Xem lịch sử đỗ xe</Link> để so sánh các phiên đã tạo hóa đơn.
           </p>
         </div>
       )}
 
       {invoices.length === 0 ? (
-        <p className="empty-state">No invoices found</p>
+        <p className="empty-state">Không tìm thấy hóa đơn</p>
       ) : (
         <table className="data-table">
           <thead>
             <tr>
-              <th>Period</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Due Date</th>
-              <th>Sessions</th>
-              <th>Actions</th>
+              <th>Kỳ</th>
+              <th>Tổng</th>
+              <th>Trạng thái</th>
+              <th>Hạn thanh toán</th>
+              <th>Phiên</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -160,7 +160,7 @@ function InvoiceListPage() {
                 <td>
                   {(inv.status === 'pending' || inv.status === 'overdue') && (
                     <button className="btn-small" onClick={() => handleSettleInvoice(inv)}>
-                      {isFinance ? 'Mark Paid' : 'Pay Now'}
+                      {isFinance ? 'Đánh dấu đã trả' : 'Thanh toán'}
                     </button>
                   )}
                 </td>
@@ -172,17 +172,17 @@ function InvoiceListPage() {
 
       {invoices.length > 0 && (
         <div className="invoice-details">
-          <h3>{isFinance ? 'Invoice Items' : 'How Your Bill Was Calculated'}</h3>
+          <h3>{isFinance ? 'Chi tiết hóa đơn' : 'Chi tiết tính tiền'}</h3>
           {invoices.filter((inv) => (inv.items || []).length > 0).slice(0, 3).map((inv) => (
             <div key={inv._id} className="card">
               <h4>Invoice #{inv._id.slice(-6)} ({inv.status})</h4>
               <table className="data-table compact">
                 <thead>
                   <tr>
-                    <th>Plate</th>
-                    <th>Entry</th>
-                    <th>Exit</th>
-                    <th>Amount</th>
+                    <th>Biển số</th>
+                    <th>Giờ vào</th>
+                    <th>Giờ ra</th>
+                    <th>Số tiền</th>
                   </tr>
                 </thead>
                 <tbody>

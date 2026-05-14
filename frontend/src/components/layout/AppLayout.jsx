@@ -5,27 +5,27 @@ import '../../styles/AppLayout.css';
 
 const MENU_ITEMS = {
   learner: [
-    { to: '/dashboard', label: 'Dashboard', icon: '◉' },
-    { to: '/parking-history', label: 'Parking History', icon: '◷' },
-    { to: '/info', label: 'Personal Info', icon: '◈' },
+    { to: '/dashboard', label: 'Bảng điều khiển', icon: '◉' },
+    { to: '/parking-history', label: 'Lịch sử đỗ xe', icon: '◷' },
+    { to: '/info', label: 'Thông tin cá nhân', icon: '◈' },
   ],
   operator: [
-    { to: '/staff-dashboard', label: 'Dashboard', icon: '◉' },
-    { to: '/iot-monitor', label: 'IoT Monitor', icon: '◈' },
-    { to: '/parking-history', label: 'Parking History', icon: '◷' },
-    { to: '/info', label: 'Personal Info', icon: '▭' },
+    { to: '/staff-dashboard', label: 'Bảng điều khiển', icon: '◉' },
+    { to: '/iot-monitor', label: 'Giám sát IoT', icon: '◈' },
+    { to: '/parking-history', label: 'Lịch sử đỗ xe', icon: '◷' },
+    { to: '/info', label: 'Thông tin cá nhân', icon: '▭' },
   ],
   faculty: [
-    { to: '/dashboard', label: 'Dashboard', icon: '◉' },
-    { to: '/parking-history', label: 'Parking History', icon: '◷' },
-    { to: '/info', label: 'Personal Info', icon: '◈' },
+    { to: '/dashboard', label: 'Bảng điều khiển', icon: '◉' },
+    { to: '/parking-history', label: 'Lịch sử đỗ xe', icon: '◷' },
+    { to: '/info', label: 'Thông tin cá nhân', icon: '◈' },
   ],
   finance: [
-    { to: '/finance-dashboard', label: 'Dashboard', icon: '◉' },
-    { to: '/finance/pricing', label: 'Pricing', icon: '◷' },
-    { to: '/finance/invoices', label: 'Invoices', icon: '◈' },
-    { to: '/finance/audit', label: 'Audit Trail', icon: '◇' },
-    { to: '/info', label: 'Personal Info', icon: '▭' },
+    { to: '/finance-dashboard', label: 'Bảng điều khiển', icon: '◉' },
+    { to: '/finance/pricing', label: 'Cấu hình giá', icon: '◷' },
+    { to: '/finance/invoices', label: 'Hóa đơn', icon: '◈' },
+    { to: '/finance/audit', label: 'Nhật ký kiểm tra', icon: '◇' },
+    { to: '/info', label: 'Thông tin cá nhân', icon: '▭' },
   ],
 };
 
@@ -66,7 +66,7 @@ function AppLayout({ children, title, subtitle }) {
 
         <div className="sidebar-footer">
           <button className="logout-btn" onClick={onLogout}>
-            Logout
+            Đăng xuất
           </button>
         </div>
       </aside>
